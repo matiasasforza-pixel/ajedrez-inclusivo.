@@ -1,0 +1,19 @@
+{
+  "name": "Ajedrez Inclusivo: aprender y jugar",
+  "short_name": "Ajedrez Inclusivo",
+  "description": "Aprendé ajedrez y jugá con Stockfish 19 Lite. Accesible con lectores de pantalla.",
+  "lang": "es-AR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#145eb6",
+  "icons": [
+    {
+      "src": "./icono-ajedrez.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
