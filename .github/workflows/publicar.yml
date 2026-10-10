@@ -1,0 +1,38 @@
+name: Publicar Ajedrez Inclusivo con Stockfish
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar sitio y motor Stockfish 19 Lite
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public
+          cp index.html public/index.html
+          base="https://cdn.jsdelivr.net/npm/stockfish@19.0.0/bin"
+          curl -fL --retry 3 "$base/stockfish-19-lite-single.js" -o public/stockfish-19-lite-single.js
+          curl -fL --retry 3 "$base/stockfish-19-lite-single.wasm" -o public/stockfish-19-lite-single.wasm
+          test "$(wc -c < public/stockfish-19-lite-single.js)" -gt 10000
+          test "$(wc -c < public/stockfish-19-lite-single.wasm)" -gt 100000
+          curl -fL --retry 3 "https://raw.githubusercontent.com/nmrugg/stockfish.js/master/Copying.txt" -o public/LICENCIA_STOCKFISH_GPL3.txt
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v4
