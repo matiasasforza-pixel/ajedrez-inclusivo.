@@ -24,6 +24,7 @@ jobs:
           set -euo pipefail
           mkdir -p public
           cp index.html public/index.html
+          cp manifest.webmanifest sw.js icono-ajedrez.svg public/
           # Instalar desde el registro oficial npm: la CDN devolvía HTTP 403.
           npm install --prefix "$RUNNER_TEMP/stockfish" --no-save --ignore-scripts --no-audit --no-fund stockfish@19.0.0
           cp "$RUNNER_TEMP/stockfish/node_modules/stockfish/bin/stockfish-19-lite-single.js" public/
