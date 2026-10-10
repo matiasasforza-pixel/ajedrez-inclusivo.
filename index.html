@@ -1,12 +1,12 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ajedrez Inclusivo — aprender y jugar</title><meta name="theme-color" content="#145eb6"><meta name="description" content="Aprendé ajedrez y jugá con Stockfish. Accesible con Ferda, TalkBack y NVDA."><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="./icono-ajedrez.svg"><style>
 :root{color-scheme:light}body{font:17px/1.55 system-ui,Arial,sans-serif;max-width:820px;margin:auto;padding:15px;color:#161616}h1{font-size:1.65rem}h2{font-size:1.3rem}button,input,select{font:inherit;padding:9px;max-width:100%;margin:3px}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #145eb6;outline-offset:2px}.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:10px 0}.section{border-top:1px solid #777;margin-top:16px;padding-top:12px}.hidden{display:none}#board{display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222}#board button{border:1px solid #666;min-width:0;padding:0;aspect-ratio:1;font-size:clamp(19px,5.6vw,38px);margin:0}.light{background:#efe0bc;color:#111}.dark{background:#85633f;color:#fff}.chosen{outline:4px solid #067cd1;outline-offset:-4px}.hint{box-shadow:inset 0 0 0 4px #0a6933}.status{border:1px solid #555;border-radius:5px;padding:10px;margin:12px 0;min-height:3em}label{display:block;margin:6px 0}.coords input{width:4.2em}.note{font-size:.93em}fieldset{border:1px solid #aaa;margin:12px 0}#history{max-height:230px;overflow:auto}summary{cursor:pointer}#board button:disabled{opacity:1}</style></head><body>
-<h1>Ajedrez Inclusivo, versión 7.2, con selección accesible de piezas</h1><p>Aprendé las piezas y jugá contra la computadora. Diseñada para explorar con Ferda, TalkBack y NVDA. La accesibilidad real debe probarse en cada lector. Las lecciones y el rival experimental funcionan sin Internet. Stockfish puede activarse después de publicar el paquete completo en HTTPS. El motor incorporado y las lecciones funcionan sin Internet.</p>
+<h1>Ajedrez Inclusivo, versión 7.3, selección por tipo de pieza</h1><p>Aprendé las piezas y jugá contra la computadora. Diseñada para explorar con Ferda, TalkBack y NVDA. La accesibilidad real debe probarse en cada lector. Las lecciones y el rival experimental funcionan sin Internet. Stockfish puede activarse después de publicar el paquete completo en HTTPS. El motor incorporado y las lecciones funcionan sin Internet.</p>
 <nav class="controls" aria-label="Secciones"><button id="tabPlay" aria-pressed="true">Jugar</button><button id="tabLearn" aria-pressed="false">Aprender</button></nav>
 <div id="play"><h2>Partida contra la computadora</h2><div class="controls"><button id="reset">Nueva partida</button><button id="audio">Activar sonido estéreo</button><button id="repeat">Repetir último anuncio</button><button id="save">Guardar partida</button><button id="load">Recuperar partida</button></div>
 <fieldset><legend>Motor de la computadora</legend><label for="engineMode">Seleccionar rival</label><select id="engineMode"><option value="fallback" selected>Rival incorporado (funciona al abrir HTML)</option><option value="stockfish">Stockfish 19 Lite (solo cuando esté instalado y conectado)</option></select><button id="engineConnect" type="button">Comprobar conexión con Stockfish</button><p id="engineStatus" role="status" aria-live="polite" tabindex="-1">Rival incorporado listo. Stockfish no conectado.</p><p class="note">Estado del motor: el botón Comprobar conexión verifica Stockfish solamente cuando la aplicación se publica con sus componentes en HTTPS. La versión HTML descargada sigue utilizando el rival incorporado.</p></fieldset>
 <label for="difficulty">Nivel de la computadora</label><select id="difficulty"><option value="0">1. Principiante</option><option value="1" selected>2. Fácil</option><option value="2">3. Intermedio</option><option value="3">4. Difícil experimental</option></select>
 <label for="assist">Asistencia durante la partida</label><select id="assist"><option value="beginner">Principiante: anuncia destinos</option><option value="intermediate">Intermedio: destinos a pedido</option><option value="advanced">Avanzado: anuncios esenciales</option></select>
-<fieldset><legend>Jugada guiada</legend><p>Elegí primero una pieza y después un destino legal. No necesitás memorizar qué pieza ocupa cada casilla.</p><label for="pieceSelect">Seleccionar pieza y su posición</label><select id="pieceSelect"></select><label for="destinationSelect">Elegir destino legal</label><select id="destinationSelect"></select><div class="controls"><button type="button" id="nextPiece">Pieza siguiente</button><button type="button" id="nextDestination">Destino siguiente</button><button type="button" id="guidedMove">Mover pieza seleccionada</button><button type="button" id="guidedHelp">Ayuda con esta jugada</button><button type="button" id="howMove">Cómo se mueve esta pieza</button></div></fieldset>
+<fieldset><legend>Jugada guiada</legend><p>Elegí primero una pieza y después un destino legal. No necesitás memorizar qué pieza ocupa cada casilla.</p><label for="pieceSelect">Seleccionar pieza y su posición</label><select id="pieceSelect"></select><label for="destinationSelect">Elegir destino legal</label><select id="destinationSelect"></select><div class="controls"><button type="button" id="nextType">Cambiar tipo de pieza</button><button type="button" id="nextSameType">Siguiente pieza de este tipo</button></div><p id="typeSelectionStatus" role="status" aria-live="off">Tipo de pieza: peón.</p><div class="controls"><button type="button" id="nextPiece">Pieza siguiente</button><button type="button" id="nextDestination">Destino siguiente</button><button type="button" id="guidedMove">Mover pieza seleccionada</button><button type="button" id="guidedHelp">Ayuda con esta jugada</button><button type="button" id="howMove">Cómo se mueve esta pieza</button></div></fieldset>
 <label><input type="checkbox" id="bot" checked> La computadora juega con negras</label><label for="responseMode">Cuándo responde la computadora</label><select id="responseMode"><option value="8" selected>Automático: espera 8 segundos para permitir leer mi jugada</option><option value="12">Automático: espera 12 segundos</option><option value="manual">Manual: responde al activar el botón</option></select><button type="button" id="nextBot">Escuché mi jugada: jugar negras ahora</button>
 <label><input type="checkbox" id="extraVoice"> Voz artificial adicional (puede interferir con Ferda; desactivada)</label>
 <form id="moveForm" class="coords"><label for="from">Origen (por ejemplo E2)</label><input id="from" aria-label="Casilla de origen" maxlength="2" autocapitalize="characters" placeholder="E2"><label for="to">Destino (por ejemplo E4)</label><input id="to" aria-label="Casilla de destino" maxlength="2" autocapitalize="characters" placeholder="E4"><button type="submit">Mover pieza</button></form>
@@ -69,7 +69,9 @@ function refreshGuided(){
  const picker=$('pieceSelect'),dest=$('destinationSelect');if(!picker||!dest)return;
  const moves=currentLegal(),origins=[...new Set(moves.map(m=>m.from))].sort();
  updateOptionsIfChanged(picker,origins.map(a=>({value:a,text:desc(a)})));
+ selectedType=board[picker.value]?.[1]||selectedType;
  refreshDestinations();
+ announceTypeSelection();
 }
 function refreshDestinations(){
  const picker=$('pieceSelect'),dest=$('destinationSelect');if(!picker||!dest)return;
@@ -80,9 +82,44 @@ function cycleGuided(id,label){
  const select=$(id);
  if(!select.options.length)return say('No hay opciones legales disponibles.');
  select.selectedIndex=(select.selectedIndex+1)%select.options.length;
- if(id==='pieceSelect')refreshDestinations();
+ if(id==='pieceSelect'){selectedType=board[select.value]?.[1]||'p';refreshDestinations();announceTypeSelection();}
  say(label+': '+select.options[select.selectedIndex].textContent+'. '+(id==='pieceSelect'?'Ahora elegí un destino.':'Activá Mover pieza seleccionada para confirmar.'));
 }
+const TYPE_ORDER=['p','n','b','r','q','k'];
+let selectedType='p';
+function playableOriginsForType(type){
+ return [...new Set(currentLegal().map(m=>m.from))].sort().filter(square=>board[square]?.[1]===type);
+}
+function typeName(type){return ({p:'Peón',n:'Caballo',b:'Alfil',r:'Torre',q:'Dama',k:'Rey'})[type]}
+function announceTypeSelection(){
+ const spots=playableOriginsForType(selectedType);
+ $('typeSelectionStatus').textContent='Tipo elegido: '+typeName(selectedType)+'. '+spots.length+' piezas con movimientos legales.';
+}
+function selectGuidedOrigin(square){
+ const picker=$('pieceSelect');
+ if(![...picker.options].some(option=>option.value===square))return false;
+ picker.value=square;
+ refreshDestinations();
+ announceTypeSelection();
+ return true;
+}
+$('nextType').onclick=()=>{
+ const available=TYPE_ORDER.filter(type=>playableOriginsForType(type).length);
+ if(!available.length)return say('No hay piezas con movimientos legales.');
+ let index=available.indexOf(selectedType);
+ selectedType=available[(index+1)%available.length];
+ const square=playableOriginsForType(selectedType)[0];
+ selectGuidedOrigin(square);
+ say('Tipo de pieza: '+typeName(selectedType)+'. Seleccionada '+desc(square)+'. Para recorrer posiciones del mismo tipo, activá Siguiente pieza de este tipo.');
+};
+$('nextSameType').onclick=()=>{
+ const squares=playableOriginsForType(selectedType);
+ if(!squares.length)return say('No hay '+typeName(selectedType)+' con movimientos legales. Activá Cambiar tipo de pieza.');
+ const current=squares.indexOf($('pieceSelect').value);
+ const square=squares[(current+1)%squares.length];
+ selectGuidedOrigin(square);
+ say('Pieza seleccionada: '+desc(square)+'. Ahora podés elegir el destino legal.');
+};
 function render(){refreshGuided();const root=$('board');root.replaceChildren();const opts=chosen?currentLegal().filter(m=>m.from===chosen).map(m=>m.to):[];for(let y=7;y>=0;y--)for(let x=0;x<8;x++){const s=sq(x,y),p=board[s],btn=document.createElement('button');btn.type='button';btn.className=(x+y)%2?'light':'dark';if(chosen===s)btn.classList.add('chosen');if(opts.includes(s))btn.classList.add('hint');btn.textContent=p?G[p]:'·';btn.setAttribute('aria-label',desc(s)+(chosen===s?', seleccionada':'')+(opts.includes(s)?', destino posible':''));btn.onclick=()=>pick(s);root.appendChild(btn)}$('summary').textContent=ended?'Partida terminada.': 'Turno de '+SIDE[turn]+(check(board,turn)?'. Rey en jaque.':'')}
 function pick(s){if(ended){say('La partida terminó. Pulsá Nueva partida.');return}if(turn==='b'&&$('bot').checked){say('La computadora juega con negras.');return}if(!chosen){if(board[s]&&board[s][0]===turn){chosen=s;render();say('Seleccionaste '+desc(s)+'. '+currentLegal().filter(m=>m.from===s).length+' destinos legales.')}else say(desc(s)+'. No es una pieza del turno actual.')}else{const from=chosen;chosen=null;const m=currentLegal().find(m=>m.from===from&&m.to===s);if(m)play(m);else{render();say('Destino ilegal para '+desc(from)+'. Seleccioná de nuevo una pieza.')}}}
 function humanMove(a,b){a=a.trim().toUpperCase();b=b.trim().toUpperCase();if(ended)return say('Partida terminada.');if(turn==='b'&&$('bot').checked)return say('Ahora responde la computadora.');const m=currentLegal().find(m=>m.from===a&&m.to===b);if(!m)return say('Movimiento ilegal o coordenadas incorrectas. Verificá origen y destino, o consultá destinos legales.');play(m)}
@@ -107,7 +144,7 @@ function practiceMoves(){if(!exChosen)return[];return raw(exercise,'w',{},null).
 function drawPractice(){const el=$('practiceBoard');el.replaceChildren();el.style.cssText='display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222';const available=practiceMoves();for(let y=7;y>=0;y--)for(let x=0;x<8;x++){const s=sq(x,y),p=exercise[s],b=document.createElement('button');b.type='button';b.className=(x+y)%2?'light':'dark';b.style.cssText='min-width:0;aspect-ratio:1;padding:0;margin:0;border:1px solid #666;font-size:clamp(19px,5.6vw,38px)';b.textContent=p?G[p]:'·';b.setAttribute('aria-label',desc(s,exercise)+(available.includes(s)?', destino permitido':''));b.onclick=()=>{if(!exChosen){if(!p)return $('practiceStatus').textContent=desc(s,exercise)+'. Elegí la pieza del ejercicio.';exChosen=s;drawPractice();$('practiceStatus').textContent='Seleccionaste '+desc(s,exercise)+'. Destinos posibles: '+practiceMoves().join(', ');}else{if(available.includes(s)){$('practiceStatus').textContent='Correcto. '+N[exPiece]+' de '+exChosen+' a '+s+'. Podés cargar otra vez el ejercicio.';exercise={[s]:'w'+exPiece};exChosen=null;drawPractice();tone(s)}else{exChosen=null;drawPractice();$('practiceStatus').textContent='Ese destino no está permitido. Probá de nuevo.'}}};el.appendChild(b)}}
 $('nextPiece').onclick=()=>cycleGuided('pieceSelect','Pieza elegida');
 $('nextDestination').onclick=()=>cycleGuided('destinationSelect','Destino elegido');
-$('pieceSelect').onchange=()=>{refreshDestinations();const a=$('pieceSelect').value;if($('assist').value==='beginner')say(desc(a)+'. Destinos legales: '+currentLegal().filter(m=>m.from===a).map(m=>m.to).join(', '));};
+$('pieceSelect').onchange=()=>{selectedType=board[$('pieceSelect').value]?.[1]||'p';refreshDestinations();announceTypeSelection();const a=$('pieceSelect').value;if($('assist').value==='beginner')say(desc(a)+'. Destinos legales: '+currentLegal().filter(m=>m.from===a).map(m=>m.to).join(', '));};
 $('guidedMove').onclick=()=>{const a=$('pieceSelect').value,b=$('destinationSelect').value;if(!a||!b)return say('No hay jugadas disponibles.');humanMove(a,b)};
 $('guidedHelp').onclick=()=>{const a=$('pieceSelect').value;if(!a)return say('No hay una pieza seleccionada.');say(desc(a)+'. Destinos legales: '+currentLegal().filter(m=>m.from===a).map(m=>m.to).join(', '))};
 $('howMove').onclick=()=>{const a=$('pieceSelect').value;if(!board[a])return say('Seleccioná una pieza.');say(lessons[board[a][1]])};
