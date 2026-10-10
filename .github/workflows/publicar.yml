@@ -24,9 +24,10 @@ jobs:
           set -euo pipefail
           mkdir -p public
           cp index.html public/index.html
-          base="https://cdn.jsdelivr.net/npm/stockfish@19.0.0/bin"
-          curl -fL --retry 3 "$base/stockfish-19-lite-single.js" -o public/stockfish-19-lite-single.js
-          curl -fL --retry 3 "$base/stockfish-19-lite-single.wasm" -o public/stockfish-19-lite-single.wasm
+          # Instalar desde el registro oficial npm: la CDN devolvía HTTP 403.
+          npm install --prefix "$RUNNER_TEMP/stockfish" --no-save --ignore-scripts --no-audit --no-fund stockfish@19.0.0
+          cp "$RUNNER_TEMP/stockfish/node_modules/stockfish/bin/stockfish-19-lite-single.js" public/
+          cp "$RUNNER_TEMP/stockfish/node_modules/stockfish/bin/stockfish-19-lite-single.wasm" public/
           test "$(wc -c < public/stockfish-19-lite-single.js)" -gt 10000
           test "$(wc -c < public/stockfish-19-lite-single.wasm)" -gt 100000
           curl -fL --retry 3 "https://raw.githubusercontent.com/nmrugg/stockfish.js/master/Copying.txt" -o public/LICENCIA_STOCKFISH_GPL3.txt
