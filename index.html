@@ -1,6 +1,6 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ajedrez Inclusivo — aprender y jugar</title><meta name="theme-color" content="#145eb6"><meta name="description" content="Aprendé ajedrez y jugá con Stockfish. Accesible con Ferda, TalkBack y NVDA."><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="./icono-ajedrez.svg"><style>
-:root{color-scheme:light}body{font:17px/1.55 system-ui,Arial,sans-serif;max-width:820px;margin:auto;padding:15px;color:#161616}h1{font-size:1.65rem}h2{font-size:1.3rem}button,input,select{font:inherit;padding:9px;max-width:100%;margin:3px}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #145eb6;outline-offset:2px}.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:10px 0}.section{border-top:1px solid #777;margin-top:16px;padding-top:12px}.hidden{display:none}#board{display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222}#board button{border:1px solid #666;min-width:0;padding:0;aspect-ratio:1;font-size:clamp(19px,5.6vw,38px);margin:0}.light{background:#efe0bc;color:#111}.dark{background:#85633f;color:#fff}.chosen{outline:4px solid #067cd1;outline-offset:-4px}.hint{box-shadow:inset 0 0 0 4px #0a6933}.status{border:1px solid #555;border-radius:5px;padding:10px;margin:12px 0;min-height:3em}label{display:block;margin:6px 0}.coords input{width:4.2em}.note{font-size:.93em}fieldset{border:1px solid #aaa;margin:12px 0}#history{max-height:230px;overflow:auto}summary{cursor:pointer}#board button:disabled{opacity:1}</style></head><body>
-<h1>Ajedrez Inclusivo, versión 8.1, memoria de cambios del tablero</h1><p>Aprendé las piezas y jugá contra la computadora. Diseñada para explorar con Ferda, TalkBack y NVDA. La accesibilidad real debe probarse en cada lector. Las lecciones y el rival experimental funcionan sin Internet. Stockfish puede activarse después de publicar el paquete completo en HTTPS. El motor incorporado y las lecciones funcionan sin Internet.</p>
+:root{color-scheme:light}body{font:17px/1.55 system-ui,Arial,sans-serif;max-width:820px;margin:auto;padding:15px;color:#161616}h1{font-size:1.65rem}h2{font-size:1.3rem}button,input,select{font:inherit;padding:9px;max-width:100%;margin:3px}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #145eb6;outline-offset:2px}.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:10px 0}.section{border-top:1px solid #777;margin-top:16px;padding-top:12px}.hidden{display:none}#board{display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222}#board button{border:1px solid #666;min-width:0;padding:0;aspect-ratio:1;font-size:clamp(19px,5.6vw,38px);margin:0}.light{background:#efe0bc;color:#111}.dark{background:#85633f;color:#fff}.chosen{outline:4px solid #067cd1;outline-offset:-4px}.hint{box-shadow:inset 0 0 0 4px #0a6933}.status{border:1px solid #555;border-radius:5px;padding:10px;margin:12px 0;min-height:3em}label{display:block;margin:6px 0}.coords input{width:4.2em}.note{font-size:.93em}fieldset{border:1px solid #aaa;margin:12px 0}#history{max-height:230px;overflow:auto}summary{cursor:pointer;padding:10px;font-weight:600}nav[id$='Menu']{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}nav[id$='Menu'] h3{width:100%;margin:6px 0}nav[id$='Menu'] a,.menuBack{display:inline-block;padding:8px;border:1px solid #777;border-radius:5px}#play>details,#learn>details{margin:12px 0;border:1px solid #888;border-radius:6px;padding:6px}#board button:disabled{opacity:1}</style></head><body>
+<h1>Ajedrez Inclusivo, versión 8.2, menús accesibles de Jugar y Aprender</h1><p>Aprendé las piezas y jugá contra la computadora. Diseñada para explorar con Ferda, TalkBack y NVDA. La accesibilidad real debe probarse en cada lector. Las lecciones y el rival experimental funcionan sin Internet. Stockfish puede activarse después de publicar el paquete completo en HTTPS. El motor incorporado y las lecciones funcionan sin Internet.</p>
 <nav class="controls" aria-label="Secciones"><button id="tabPlay" aria-pressed="true">Jugar</button><button id="tabLearn" aria-pressed="false">Aprender</button></nav>
 <div id="play"><h2>Partida contra la computadora</h2><div class="controls"><button id="reset">Nueva partida</button><button id="audio">Activar sonido estéreo</button><button id="repeat">Repetir último anuncio</button><button id="save">Guardar partida</button><button id="load">Recuperar partida</button></div>
 <fieldset><legend>Audio espacial accesible</legend><label for="soundVolume">Volumen de los sonidos: <output id="soundVolumeValue">20 por ciento</output></label><input id="soundVolume" type="range" min="0" max="100" step="10" value="20"><label for="soundMode">Información sonora del movimiento</label><select id="soundMode"><option value="destination">Solo destino, como antes</option><option value="both" selected>Origen y destino, dos notas</option></select><label for="soundDelay">Cuándo suena respecto al anuncio</label><select id="soundDelay"><option value="0">Inmediatamente</option><option value="1200" selected>Después de 1,2 segundos</option><option value="2500">Después de 2,5 segundos</option></select><button id="soundTest" type="button">Probar sonido izquierdo y derecho</button><p class="note">El sonido está desactivado hasta pulsar Activar sonido estéreo. La posición izquierda o derecha corresponde a la columna de cada casilla; las notas más agudas indican filas superiores. El retraso reduce, pero no garantiza evitar, el solapamiento con Ferda.</p></fieldset>
@@ -374,6 +374,58 @@ $('courseCheck').onclick=()=>{
 $('courseNext').onclick=courseGoNext;
 $('courseProgressRead').onclick=()=>courseSay($('courseProgress').textContent);
 $('courseReset').onclick=()=>{const ok=window.confirm('Vas a borrar solamente el progreso educativo de las doce lecciones en este navegador. No se borrarán tus partidas. ¿Confirmás?');if(!ok)return;courseProgress={completed:[],attempts:0,correct:0};courseActive=null;courseSolved=false;courseUsedHint=false;const saved=storeCourse();courseUpdate();$('courseLesson').value='0';courseSay(saved?'Progreso educativo reiniciado. Las partidas guardadas no se modificaron.':'Se reinició la sesión, pero no se pudo guardar el cambio.')};
+
+
+function setupAccessibleMenus(){
+ const play=$('play'),learn=$('learn');
+ const pl=[...play.children],le=[...learn.children];
+ // Structure assertions prevent unexpected loss of controls.
+ if(pl[0]?.tagName!=='H2'||pl[1]?.querySelector('#reset')==null||pl[8]?.querySelector('#pieceSelect')==null||!pl.some(n=>n.id==='memoryTitle'||n.querySelector?.('#memoryTitle')))return;
+ function menu(root,id,title){
+  const nav=document.createElement('nav');nav.id=id;nav.setAttribute('aria-label',title);
+  const heading=document.createElement('h3');heading.tabIndex=-1;heading.textContent=title;nav.append(heading);
+  root.append(nav);return nav;
+ }
+ function section(root,nav,id,name,nodes,isOpen=false){
+  const details=document.createElement('details');details.id=id;details.open=isOpen;
+  const summary=document.createElement('summary');summary.textContent=name;details.append(summary);
+  for(const n of nodes){if(n)details.append(n)}
+  const back=document.createElement('a');back.href='#'+nav.id;back.textContent='Volver al menú de '+(root===play?'Jugar':'Aprender');
+  back.className='menuBack';details.append(back);root.append(details);
+  // Preserve expansion state in a separate key, never in game or course data.
+  try{
+   const saved=sessionStorage.getItem('ajedrez-menu-'+id);
+   if(saved!==null)details.open=saved==='1';
+  }catch(e){}
+  details.addEventListener('toggle',()=>{try{sessionStorage.setItem('ajedrez-menu-'+id,details.open?'1':'0')}catch(e){}});
+  const jump=document.createElement('a');jump.href='#'+id;jump.textContent=name;
+  nav.append(jump);
+  return details;
+ }
+ const pm=menu(play,'playMenu','Menú de Jugar');
+ // Keep all movement announcements in the open playing section.
+ section(play,pm,'groupPlaying','Jugada guiada y partida',[pl[1],pl[8],pl[12],pl[14],pl[15],pl[16],pl[17],pl[18],pl[19]],true);
+ section(play,pm,'groupOpponent','Configuración del rival',[pl[3],pl[4],pl[5],pl[6],pl[7],pl[9],pl[10],pl[11],pl[13]]);
+ section(play,pm,'groupMemory','Memoria del tablero',[pl[20]]);
+ section(play,pm,'groupExploration','Exploración sonora de casillas',[pl[21]]);
+ section(play,pm,'groupSound','Sonido espacial',[pl[2]]);
+ section(play,pm,'groupBoard','Tablero interactivo',[pl[22]]);
+ section(play,pm,'groupHistory','Historial y partidas guardadas',[pl[23],pl[24],pl[25]]);
+ const lm=menu(learn,'learnMenu','Menú de Aprender');
+ // The introductory heading and short description remain before the menu.
+ const intro=le.slice(2,8);
+ section(learn,lm,'groupPieces','Aprender las piezas',intro,true);
+ section(learn,lm,'groupCourse','Curso progresivo de ajedrez',[le.find(n=>n.id==='courseSection')]);
+ section(learn,lm,'groupExercises','Ejercicios guiados',[le.find(n=>n.id==='guidedExercises')]);
+ const practiceTitle=le.find(n=>n.tagName==='H3'&&n.textContent==='Práctica de movimientos');
+ const conceptsTitle=le.find(n=>n.tagName==='H3'&&n.textContent==='Conceptos');
+ const ix=le.indexOf(practiceTitle),cx=le.indexOf(conceptsTitle);
+ if(ix>=0&&cx>ix){
+  section(learn,lm,'groupPractice','Tablero de práctica',le.slice(ix,cx));
+  section(learn,lm,'groupConcepts','Conceptos de ajedrez',le.slice(cx));
+ }
+}
+setupAccessibleMenus();
 
 start();
 if ("serviceWorker" in navigator && location.protocol === "https:") {
