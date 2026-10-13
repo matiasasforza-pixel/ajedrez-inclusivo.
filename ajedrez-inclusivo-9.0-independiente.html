@@ -1,0 +1,520 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ajedrez Inclusivo — aprender y jugar</title><meta name="theme-color" content="#145eb6"><meta name="description" content="Aprendé ajedrez y jugá con Stockfish. Accesible con Ferda, TalkBack y NVDA."><style>
+:root{color-scheme:light}body{font:17px/1.55 system-ui,Arial,sans-serif;max-width:820px;margin:auto;padding:15px;color:#161616}h1{font-size:1.65rem}h2{font-size:1.3rem}button,input,select{font:inherit;padding:9px;max-width:100%;margin:3px}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #145eb6;outline-offset:2px}.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:10px 0}.section{border-top:1px solid #777;margin-top:16px;padding-top:12px}.hidden{display:none}#board{display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222}#board button{border:1px solid #666;min-width:0;padding:0;aspect-ratio:1;font-size:clamp(19px,5.6vw,38px);margin:0}.light{background:#efe0bc;color:#111}.dark{background:#85633f;color:#fff}.chosen{outline:4px solid #067cd1;outline-offset:-4px}.hint{box-shadow:inset 0 0 0 4px #0a6933}.status{border:1px solid #555;border-radius:5px;padding:10px;margin:12px 0;min-height:3em}label{display:block;margin:6px 0}.coords input{width:4.2em}.note{font-size:.93em}fieldset{border:1px solid #aaa;margin:12px 0}#history{max-height:230px;overflow:auto}summary{cursor:pointer;padding:10px;font-weight:600}nav[id$='Menu']{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}nav[id$='Menu'] h3{width:100%;margin:6px 0}nav[id$='Menu'] a,.menuBack{display:inline-block;padding:8px;border:1px solid #777;border-radius:5px}#play>details,#learn>details{margin:12px 0;border:1px solid #888;border-radius:6px;padding:6px}#board button:disabled{opacity:1}#board button:focus-visible{outline:4px solid #b000d0;outline-offset:-5px;position:relative;z-index:1}button{min-height:44px}dialog{max-width:min(90vw,32rem)}dialog::backdrop{background:#0008}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}a:focus-visible,summary:focus-visible{outline:3px solid #145eb6;outline-offset:3px}</style></head><body>
+<h1>Ajedrez Inclusivo 9.0 — edición independiente de un solo archivo</h1><p>Aprendé las piezas y jugá contra la computadora. Diseñada para explorar con Ferda, TalkBack y NVDA. La accesibilidad real debe probarse en cada lector. La candidata requiere validación real con lectores de pantalla. Para usarla sin Internet, abrí primero el sitio conectado y esperá la confirmación de preparación. Esta edición independiente incluye las lecciones y el rival incorporado, sin depender de otros archivos.</p>
+<nav class="controls" aria-label="Secciones"><button id="tabPlay" aria-pressed="true">Jugar</button><button id="tabLearn" aria-pressed="false">Aprender</button></nav>
+<div id="play"><h2>Partida contra la computadora</h2><div class="controls"><button id="reset">Nueva partida</button><button id="audio">Activar sonido estéreo</button><button id="repeat">Repetir último anuncio</button><button id="save">Guardar partida</button><button id="load">Recuperar partida</button></div>
+<fieldset><legend>Audio espacial accesible</legend><label for="soundVolume">Volumen de los sonidos: <output id="soundVolumeValue">20 por ciento</output></label><input id="soundVolume" type="range" min="0" max="100" step="10" value="20"><label for="soundMode">Información sonora del movimiento</label><select id="soundMode"><option value="destination">Solo destino, como antes</option><option value="both" selected>Origen y destino, dos notas</option></select><label for="soundDelay">Cuándo suena respecto al anuncio</label><select id="soundDelay"><option value="0">Inmediatamente</option><option value="1200" selected>Después de 1,2 segundos</option><option value="2500">Después de 2,5 segundos</option></select><button id="soundTest" type="button">Probar sonido izquierdo y derecho</button><p class="note">El sonido está desactivado hasta pulsar Activar sonido estéreo. La posición izquierda o derecha corresponde a la columna de cada casilla; las notas más agudas indican filas superiores. El retraso reduce, pero no garantiza evitar, el solapamiento con Ferda.</p></fieldset>
+<fieldset><legend>Motor de la computadora</legend><label for="engineMode">Seleccionar rival</label><select id="engineMode"><option value="fallback" selected>Rival incorporado (funciona al abrir HTML)</option></select><p id="engineStatus" role="status" aria-live="polite" tabindex="-1">Rival incorporado listo. Stockfish no conectado.</p><p class="note">Estado del motor: el botón Comprobar conexión verifica Stockfish solamente cuando la aplicación se publica con sus componentes en HTTPS. La versión HTML descargada sigue utilizando el rival incorporado.</p></fieldset>
+<label for="difficulty">Nivel de la computadora</label><select id="difficulty"><option value="0">1. Principiante</option><option value="1" selected>2. Fácil</option><option value="2">3. Intermedio</option><option value="3">4. Difícil experimental</option></select>
+<label for="assist">Asistencia durante la partida</label><select id="assist"><option value="beginner">Principiante: anuncia destinos</option><option value="intermediate">Intermedio: destinos a pedido</option><option value="advanced">Avanzado: anuncios esenciales</option></select>
+<fieldset><legend>Jugada guiada</legend><p>Elegí primero una pieza y después un destino legal. No necesitás memorizar qué pieza ocupa cada casilla.</p><label for="pieceSelect">Seleccionar pieza y su posición</label><select id="pieceSelect"></select><label for="destinationSelect">Elegir destino legal</label><select id="destinationSelect"></select><div class="controls"><button type="button" id="nextType">Cambiar tipo de pieza</button><button type="button" id="nextSameType">Siguiente pieza de este tipo</button></div><p id="typeSelectionStatus" role="status" aria-live="off">Tipo de pieza: peón.</p><div class="controls"><button type="button" id="nextPiece">Pieza siguiente</button><button type="button" id="nextDestination">Destino siguiente</button><button type="button" id="guidedMove">Mover pieza seleccionada</button><button type="button" id="guidedHelp">Ayuda con esta jugada</button><button type="button" id="howMove">Cómo se mueve esta pieza</button></div></fieldset>
+<label><input type="checkbox" id="bot" checked> La computadora juega con negras</label><label for="responseMode">Cuándo responde la computadora</label><select id="responseMode"><option value="8" selected>Automático: espera 8 segundos para permitir leer mi jugada</option><option value="12">Automático: espera 12 segundos</option><option value="manual">Manual: responde al activar el botón</option></select><button type="button" id="nextBot">Escuché mi jugada: jugar negras ahora</button>
+<label><input type="checkbox" id="extraVoice"> Voz artificial adicional (puede interferir con Ferda; desactivada)</label>
+<form id="moveForm" class="coords"><label for="from">Origen (por ejemplo E2)</label><input id="from" aria-label="Casilla de origen" maxlength="2" autocapitalize="characters" placeholder="E2"><label for="to">Destino (por ejemplo E4)</label><input id="to" aria-label="Casilla de destino" maxlength="2" autocapitalize="characters" placeholder="E4"><button type="submit">Mover pieza</button></form>
+<div class="controls"><button id="available">Movimientos disponibles de la pieza seleccionada</button><button id="readBot">Leer última jugada de negras</button><button id="forceBot">Hacer jugar a negras ahora</button></div>
+<p id="status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" class="status">Posición inicial.</p><p id="computerStatus" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" class="status">Esperando la primera jugada de la computadora.</p><p class="note">Ferda primero anuncia tu jugada. La computadora espera el tiempo elegido antes de mover. Si seleccionás respuesta manual, activá «Escuché mi jugada: jugar negras ahora».</p><p id="summary" aria-label="Estado de la partida">Juegan blancas.</p>
+<section aria-labelledby="memoryTitle"><h3 id="memoryTitle">Memoria espacial del tablero</h3><p>Consultá las piezas sin memorizar todas sus posiciones. Los botones leen el tablero actual y no realizan jugadas.</p><div class="controls"><button id="memoryWhite" type="button">Dónde están mis piezas blancas</button><button id="memoryBlack" type="button">Dónde están las piezas negras</button><button id="memoryLast" type="button">Recordar última jugada</button><button id="memoryChanges" type="button">¿Qué cambió en el tablero?</button><button id="memoryMyLast" type="button">Dónde quedó mi última pieza</button><button id="memoryTheirLast" type="button">Dónde quedó la última pieza rival</button><button id="memoryPieceThreat" type="button">¿Está atacada mi pieza seleccionada?</button><button id="memoryAllThreats" type="button">¿Qué piezas blancas están atacadas?</button></div><div class="controls"><button id="memoryNextFile" type="button">Siguiente columna</button><button id="memoryReadFile" type="button">Leer esta columna</button><button id="memoryNextRank" type="button">Siguiente fila</button><button id="memoryReadRank" type="button">Leer esta fila</button></div><p id="memoryPosition" aria-live="off">Columna A. Fila 1.</p><button id="memoryMessage" type="button" class="status" aria-label="Consulta espacial. Activar para repetir.">Activá una consulta para escuchar la posición de las piezas.</button></section>
+<section aria-labelledby="squareAudioTitle"><h3 id="squareAudioTitle">Exploración sonora de casillas</h3><p>Consultá cualquier casilla sin mover piezas. Primero se anunciará su contenido; si activaste el audio espacial, escucharás su posición después de una breve espera.</p><label for="squareQuery">Coordenada de la casilla, por ejemplo E4</label><input id="squareQuery" maxlength="2" autocapitalize="characters" autocomplete="off" placeholder="E4" value="E4"><div class="controls"><button id="squareQueryButton" type="button">Consultar casilla y escuchar posición</button><button id="squareNext" type="button">Siguiente casilla</button><button id="squarePrevious" type="button">Casilla anterior</button><button id="squareRowStart" type="button">Ir al inicio de esta fila</button><button id="squareRepeat" type="button">Repetir consulta</button></div><button id="squareResult" type="button" class="status" aria-label="Resultado de la consulta espacial. Activar para repetir.">Elegí una coordenada y activá Consultar casilla.</button></section>
+<details id="boardDetails"><summary>Mostrar tablero interactivo de 64 casillas</summary><h2>Tablero interactivo</h2><p>Recorré las casillas de A8 a H1. Activá una casilla con tu pieza y luego activá un destino legal. Las casillas con destino disponible se anuncian como «destino posible».</p><div id="board" role="group" aria-label="Tablero de ajedrez de 64 casillas"></div></details>
+<p class="note">Esta versión incluye un adaptador para Stockfish, cuya activación exige alojar también sus dos archivos originales en un sitio HTTPS. Si no está disponible, el rival incorporado continúa funcionando. Guardar conserva la posición en este navegador y dispositivo, si Chrome permite almacenamiento local para archivos HTML.</p><h2>Historial de jugadas</h2><ol id="history" aria-label="Jugadas en orden"></ol></div>
+<div id="learn" class="hidden"><h2>Aprender ajedrez</h2><p>Elegí una pieza. Podés escuchar su posición inicial, cómo se mueve y luego practicar con un ejemplo.</p><label for="piece">Pieza para estudiar</label><select id="piece"><option value="p">Peón</option><option value="r">Torre</option><option value="n">Caballo</option><option value="b">Alfil</option><option value="q">Dama o reina</option><option value="k">Rey</option></select>
+<div class="controls"><button id="lesson">Escuchar explicación</button><button id="lessonRepeat">Repetir explicación</button><button id="lessonPrevious">Fragmento anterior</button><button id="lessonNext">Fragmento siguiente</button><button id="practice">Cargar ejercicio de la pieza</button><button id="initial">Explicar ubicación inicial de todas las piezas</button></div><button type="button" id="lessonText" class="status" aria-live="off" aria-label="Texto de la explicación. Activar para repetirlo.">Seleccioná una pieza y activá Escuchar explicación.</button><p id="lessonProgress" class="note" aria-live="off">Las explicaciones se dividen en fragmentos. Ferda leerá el fragmento enfocado.</p>
+<section aria-labelledby="guidedTitle" id="guidedExercises"><h3 id="guidedTitle">Ejercicios guiados de movimientos</h3><p>Elegí una pieza, escuchá la consigna y seleccioná un destino. Los ejercicios no modifican tu partida contra la computadora.</p><label for="guidedPiece">Pieza del ejercicio</label><select id="guidedPiece"><option value="p">Peón</option><option value="n">Caballo</option><option value="b">Alfil</option><option value="r">Torre</option><option value="q">Dama</option><option value="k">Rey</option></select><div class="controls"><button type="button" id="guidedBegin">Comenzar ejercicio</button><button type="button" id="guidedHear">Escuchar consigna</button></div><label for="guidedDestination">Elegir destino</label><select id="guidedDestination"><option value="">Primero activá Comenzar ejercicio</option></select><div class="controls"><button type="button" id="guidedCheck">Comprobar respuesta</button><button type="button" id="guidedHint">Escuchar pista</button><button type="button" id="guidedAgain">Otro ejercicio de esta pieza</button></div><button type="button" id="guidedAnnouncement" class="status" aria-label="Resultado del ejercicio. Activar para repetir.">Todavía no comenzaste un ejercicio.</button><p id="guidedScore">Aciertos de esta sesión: 0.</p></section><section id="courseSection" aria-labelledby="courseTitle"><h3 id="courseTitle">Curso progresivo de ajedrez</h3><p>Completá doce lecciones en seis etapas. Cada lección propone un ejercicio. Para aprobar, respondé correctamente sin utilizar una pista. Podés repetir los ejercicios cuantas veces quieras.</p><label for="courseLesson">Lección</label><select id="courseLesson"></select><div class="controls"><button type="button" id="courseBegin">Comenzar lección</button><button type="button" id="courseRepeat">Repetir consigna</button><button type="button" id="courseHint">Escuchar pista</button></div><label for="courseDestination">Destino de la pieza</label><select id="courseDestination"><option value="">Primero comenzá la lección</option></select><div class="controls"><button type="button" id="courseCheck">Evaluar respuesta</button><button type="button" id="courseNext">Siguiente lección</button><button type="button" id="courseProgressRead">Escuchar mi progreso</button><button type="button" id="courseReset">Reiniciar solo progreso educativo</button></div><button type="button" id="courseAnnouncement" class="status" aria-label="Mensaje de la lección, activar para repetir">Elegí una lección y activá Comenzar lección.</button><p id="courseProgress" aria-live="off">Progreso del curso: sin comenzar.</p><p>El progreso se almacena localmente en este navegador, si el dispositivo lo permite. No cambia las partidas guardadas.</p></section><h3>Práctica de movimientos</h3><p>Al cargar un ejercicio, la pieza blanca aparecerá en una casilla del tablero. Activá esa pieza y elegí uno de sus destinos permitidos. Esta práctica no es una partida completa.</p><div id="practiceBoard" role="group" aria-label="Tablero de práctica, 64 casillas"></div><p id="practiceStatus" role="status" aria-live="polite" class="status">Elegí una pieza y pulsá «Cargar ejercicio de la pieza».</p><h3>Conceptos</h3><details><summary>¿Qué es el jaque?</summary><p>Tu rey está amenazado. Debés salir del jaque en tu siguiente jugada.</p></details><details><summary>¿Qué es el jaque mate?</summary><p>Es un jaque del cual el rey no puede escapar con ningún movimiento legal. Termina la partida.</p></details><details><summary>¿Qué es el enroque?</summary><p>Es un movimiento especial de rey y torre para proteger al rey. No debe haberse movido ninguna de las dos piezas; tampoco puede atravesarse una casilla atacada.</p></details><details><summary>¿Qué es la coronación?</summary><p>Cuando un peón llega a la última fila, puede convertirse en dama, torre, alfil o caballo. Elegí dama, torre, alfil o caballo antes de confirmar la coronación.</p></details></div>
+<script>
+const F='ABCDEFGH',N={p:'peón',r:'torre',n:'caballo',b:'alfil',q:'dama',k:'rey'},G={wp:'♙',wr:'♖',wn:'♘',wb:'♗',wq:'♕',wk:'♔',bp:'♟',br:'♜',bn:'♞',bb:'♝',bq:'♛',bk:'♚'},SIDE={w:'blancas',b:'negras'},VALUES={p:100,n:320,b:330,r:500,q:900,k:0};
+const $=id=>document.getElementById(id);let board={},turn='w',castle={},ep=null,chosen=null,ended=false,gameToken=0,pending=null,last='',lastBlack='La computadora todavía no movió.',audio=null,history=[];let exercise={},exPiece='p',exChosen=null,halfmove=0,positionCounts={};const SAVEKEY='ajedrez-inclusivo-v6-partida';
+const sq=(x,y)=>F[x]+(y+1),xy=s=>[F.indexOf(s[0]),Number(s[1])-1],valid=(x,y)=>x>=0&&x<8&&y>=0&&y<8,opp=c=>c==='w'?'b':'w';
+function start(){sfStop();gameToken++;clearTimeout(pending);pending=null;board={};for(let x=0;x<8;x++){board[sq(x,1)]='wp';board[sq(x,6)]='bp'}for(let x=0;x<8;x++){board[sq(x,0)]='w'+'rnbqkbnr'[x];board[sq(x,7)]='b'+'rnbqkbnr'[x]}turn='w';castle={wK:true,wQ:true,bK:true,bQ:true};ep=null;chosen=null;ended=false;history=[];sanHistory=[];pgnStartFen=null;uciHistory=[];memoryLastReviewed=0;lastMoveBySide={w:null,b:null};halfmove=0;positionCounts={};lastBlack='La computadora todavía no movió.';$('history').replaceChildren();recordPosition();render();say('Nueva partida. Blancas al turno. Elegí origen y destino, o seleccioná casillas.');if($('engineMode').value==='stockfish')sfConnect();}
+function desc(s,b=board){const p=b[s];return s+', '+(p?N[p[1]]+' '+(p[0]==='w'?'blanco':'negro'):'vacía')}
+function say(s,focused=false){last=s;$('status').setAttribute('aria-live',focused?'off':'polite');$('status').textContent=s;if($('extraVoice').checked&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang='es-AR';speechSynthesis.speak(u)}}
+function threatened(b,s,by){const [x,y]=xy(s);for(const [a,p] of Object.entries(b)){if(p[0]!==by)continue;const [i,j]=xy(a),dx=x-i,dy=y-j,ax=Math.abs(dx),ay=Math.abs(dy),t=p[1];if(t==='p'){if(ax===1&&dy===(by==='w'?1:-1))return true;continue}if(t==='n'){if((ax===1&&ay===2)||(ax===2&&ay===1))return true;continue}if(t==='k'){if(Math.max(ax,ay)===1)return true;continue}if((t==='b'&&ax!==ay)||(t==='r'&&dx&&dy)||(t==='q'&&!(ax===ay||dx===0||dy===0)))continue;if(!dx&&!dy)continue;let xx=i+Math.sign(dx),yy=j+Math.sign(dy),blocked=false;while(xx!==x||yy!==y){if(b[sq(xx,yy)]){blocked=true;break}xx+=Math.sign(dx);yy+=Math.sign(dy)}if(!blocked)return true}return false}
+function check(b,c){let s=Object.keys(b).find(z=>b[z]===c+'k');return !s||threatened(b,s,opp(c))}
+function raw(b,c,rights,pass){let result=[];function add(a,x,y,extra={}){if(!valid(x,y))return;const dest=sq(x,y),v=b[dest];if(!v||v[0]!==c&&v[1]!=='k'){const m={from:a,to:dest,...extra};if(b[a][1]==='p'&&(y===0||y===7)){for(const promotion of ['q','r','b','n'])result.push({...m,promotion})}else result.push(m)}}
+for(const [a,p] of Object.entries(b)){if(p[0]!==c)continue;const [x,y]=xy(a),t=p[1];if(t==='p'){const d=c==='w'?1:-1,first=c==='w'?1:6;if(valid(x,y+d)&&!b[sq(x,y+d)]){add(a,x,y+d);if(y===first&&!b[sq(x,y+2*d)])add(a,x,y+2*d)}for(const dx of [-1,1]){if(valid(x+dx,y+d)){const dest=sq(x+dx,y+d);if(b[dest]&&b[dest][0]!==c&&b[dest][1]!=='k')add(a,x+dx,y+d);else if(dest===pass)add(a,x+dx,y+d,{ep:true})}}continue}
+if(t==='n'||t==='k'){const steps=t==='n'?[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]]:[[1,1],[1,0],[1,-1],[0,1],[0,-1],[-1,1],[-1,0],[-1,-1]];for(const [dx,dy] of steps)add(a,x+dx,y+dy)}else{const dirs=[];if(t==='r'||t==='q')dirs.push([1,0],[-1,0],[0,1],[0,-1]);if(t==='b'||t==='q')dirs.push([1,1],[-1,1],[1,-1],[-1,-1]);for(const [dx,dy] of dirs){let xx=x+dx,yy=y+dy;while(valid(xx,yy)){const dest=sq(xx,yy);if(b[dest]){if(b[dest][0]!==c&&b[dest][1]!=='k')add(a,xx,yy);break}add(a,xx,yy);xx+=dx;yy+=dy}}}
+if(p===c+'k'&&x===4&&y===(c==='w'?0:7)&&!check(b,c)){const yy=y+1,enemy=opp(c);if(rights[c+'K']&&b['H'+yy]===c+'r'&&!b['F'+yy]&&!b['G'+yy]&&!threatened(b,'F'+yy,enemy)&&!threatened(b,'G'+yy,enemy))result.push({from:a,to:'G'+yy,castle:'K'});if(rights[c+'Q']&&b['A'+yy]===c+'r'&&!b['B'+yy]&&!b['C'+yy]&&!b['D'+yy]&&!threatened(b,'D'+yy,enemy)&&!threatened(b,'C'+yy,enemy))result.push({from:a,to:'C'+yy,castle:'Q'})}}
+return result}
+function applied(b,m){const z={...b},p=z[m.from],captured=z[m.to];delete z[m.from];if(m.ep){const [x,y]=xy(m.to);delete z[sq(x,y+(p[0]==='w'?-1:1))]}z[m.to]=p[1]==='p'&&('18'.includes(m.to[1]))?p[0]+(m.promotion||'q'):p;if(m.castle){const row=p[0]==='w'?'1':'8';const rf=(m.castle==='K'?'H':'A')+row,rt=(m.castle==='K'?'F':'D')+row;z[rt]=z[rf];delete z[rf]}return {b:z,captured}}
+function legal(b,c,rights,pass){return raw(b,c,rights,pass).filter(m=>!check(applied(b,m).b,c))}
+function currentLegal(){return legal(board,turn,castle,ep)}
+function updateCastle(m,p,captured){if(p[1]==='k'){castle[p[0]+'K']=false;castle[p[0]+'Q']=false}if(m.from==='A1'||m.to==='A1')castle.wQ=false;if(m.from==='H1'||m.to==='H1')castle.wK=false;if(m.from==='A8'||m.to==='A8')castle.bQ=false;if(m.from==='H8'||m.to==='H8')castle.bK=false}
+function positionKey(){return Object.keys(board).sort().map(s=>s+board[s]).join('|')+';'+turn+';'+Object.keys(castle).sort().filter(k=>castle[k]).join(',')+';'+(ep&&currentLegal().some(m=>m.ep)?ep:'-')}
+function recordPosition(){const k=positionKey();positionCounts[k]=(positionCounts[k]||0)+1;return positionCounts[k]}
+function persist(key=SAVEKEY){try{localStorage.setItem(key,JSON.stringify({version:9,board,turn,castle,ep,history,halfmove,positionCounts,ended,lastBlack,lastMoveBySide,sanHistory,pgnStartFen,uciHistory})) ;return true}catch(e){return false}}
+function restore(key=SAVEKEY){try{const obj=JSON.parse(localStorage.getItem(key)||'null');if(!obj||!obj.board||!obj.castle||!Array.isArray(obj.history))throw Error('No hay partida guardada en este navegador.');validateSave(obj);sfStop();gameToken++;clearTimeout(pending);pending=null;board=obj.board;turn=obj.turn;castle=obj.castle;ep=obj.ep;history=obj.history;memoryLastReviewed=history.length;lastMoveBySide=obj.lastMoveBySide||{w:null,b:null};halfmove=obj.halfmove||0;positionCounts=obj.positionCounts||{};ended=!!obj.ended;lastBlack=obj.lastBlack||'La computadora todavía no movió.';chosen=null;sanHistory=obj.sanHistory||[];uciHistory=obj.uciHistory||[];pgnStartFen=obj.pgnStartFen||(!obj.sanHistory?sfFen():null);$('history').replaceChildren();for(const msg of history){const li=document.createElement('li');li.textContent=msg;$('history').appendChild(li)}render();say('Partida recuperada. '+$('summary').textContent+' Ultima jugada: '+(history.at(-1)||'ninguna'));$('status').focus();return true}catch(e){say('No pude recuperar la partida: '+e.message);$('status').focus();return false}}
+function play(m,computer=false){const san=moveSAN(m);const piece=board[m.from],{b,captured}=applied(board,m);halfmove=(piece[1]==='p'||captured||m.ep)?0:halfmove+1;updateCastle(m,piece,captured);board=b;ep=null;if(piece[1]==='p'&&Math.abs(Number(m.to[1])-Number(m.from[1]))===2){const [x,y]=xy(m.from);ep=sq(x,y+(piece[0]==='w'?1:-1))}turn=opp(turn);chosen=null;const repeatCount=recordPosition();const list=currentLegal(),inCheck=check(board,turn),mate=!list.length&&inCheck,stalemate=!list.length&&!inCheck;const draw50=halfmove>=150,drawRepeat=repeatCount>=5,drawMaterial=insufficientMaterial(board);ended=mate||stalemate||draw50||drawRepeat||drawMaterial;let msg=(computer?'Computadora: ':'Jugador: ')+N[piece[1]]+' '+(piece[0]==='w'?'blanco':'negro')+' de '+m.from+' a '+m.to+(captured||m.ep?', captura':'')+(m.castle?', enroque':'')+(piece[1]==='p'&&'18'.includes(m.to[1])?', coronación a '+N[m.promotion||'q']:'')+'. '+(mate?'Jaque mate. Ganan '+SIDE[piece[0]]+'.':stalemate?'Tablas por ahogado.':drawMaterial?'Tablas por material insuficiente.':draw50?'Tablas por regla de setenta y cinco movimientos.':drawRepeat?'Tablas por quíntuple repetición.':inCheck?'Jaque al rey '+(turn==='w'?'blanco':'negro')+'.': 'Turno de '+SIDE[turn]+'.');uciHistory.push((m.from+m.to).toLowerCase()+(m.promotion||''));sanHistory.push(san+(mate?'#':inCheck?'+':''));lastMoveBySide[piece[0]]={from:m.from,to:m.to,piece:board[m.to][1]};history.push(msg);const li=document.createElement('li');li.textContent=msg;$('history').appendChild(li);if(computer)lastBlack=msg;autosave();render();movementTones(m.from,m.to);
+// Dos destinos de foco diferentes: Ferda no vuelve a anunciar si enfocamos
+// dos veces consecutivas el mismo párrafo tras una jugada automática.
+$('status').setAttribute('aria-live','off');$('computerStatus').setAttribute('aria-live','off');
+if(computer){
+  last=msg;
+  $('computerStatus').textContent=msg;
+  $('status').textContent='La computadora respondió. Consultá el anuncio de negras.';
+  if($('extraVoice').checked&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(msg);u.lang='es-AR';speechSynthesis.speak(u)}
+}else{say(msg,true)}
+const announcement=computer?$('computerStatus'):$('status');const announceToken=gameToken;
+window.setTimeout(()=>{
+  if(announceToken!==gameToken||document.getElementById('play').classList.contains('hidden'))return;
+  announcement.focus({preventScroll:false});
+},computer?160:80);if(!ended&&!computer&&turn==='b'&&$('bot').checked){const token=gameToken;($('responseMode').value==='manual'?null:(pending=setTimeout(()=>{if(token===gameToken)botMove()},Number($('responseMode').value)*1000)))}}
+function updateOptionsIfChanged(select, options) {
+  const previous=select.value;
+  const unchanged=select.options.length===options.length && options.every((item,i)=>select.options[i].value===item.value&&select.options[i].textContent===item.text);
+  if(!unchanged) {
+    // Avoid replacing focused menus unless their legal choices have changed.
+    const fragment=document.createDocumentFragment();
+    for(const item of options){const option=document.createElement('option');option.value=item.value;option.textContent=item.text;fragment.appendChild(option)}
+    select.replaceChildren(fragment);
+  }
+  if(options.some(item=>item.value===previous))select.value=previous;
+  return !unchanged;
+}
+function refreshGuided(){
+ const picker=$('pieceSelect'),dest=$('destinationSelect');if(!picker||!dest)return;
+ const moves=currentLegal(),origins=[...new Set(moves.map(m=>m.from))].sort();
+ updateOptionsIfChanged(picker,origins.map(a=>({value:a,text:desc(a)})));
+ selectedType=board[picker.value]?.[1]||selectedType;
+ refreshDestinations();
+ announceTypeSelection();
+}
+function refreshDestinations(){
+ const picker=$('pieceSelect'),dest=$('destinationSelect');if(!picker||!dest)return;
+ const moves=currentLegal().filter(m=>m.from===picker.value);
+ updateOptionsIfChanged(dest,moves.map(m=>({value:m.to+(m.promotion||''),text:m.to+(m.promotion?', coronar a '+N[m.promotion]:'')+(board[m.to]?', captura de '+desc(m.to):'')})));
+}
+function cycleGuided(id,label){
+ const select=$(id);
+ if(!select.options.length)return say('No hay opciones legales disponibles.');
+ select.selectedIndex=(select.selectedIndex+1)%select.options.length;
+ if(id==='pieceSelect'){selectedType=board[select.value]?.[1]||'p';refreshDestinations();announceTypeSelection();}
+ say(label+': '+select.options[select.selectedIndex].textContent+'. '+(id==='pieceSelect'?'Ahora elegí un destino.':'Activá Mover pieza seleccionada para confirmar.'));
+}
+const TYPE_ORDER=['p','n','b','r','q','k'];
+let selectedType='p';
+function playableOriginsForType(type){
+ return [...new Set(currentLegal().map(m=>m.from))].sort().filter(square=>board[square]?.[1]===type);
+}
+function typeName(type){return ({p:'Peón',n:'Caballo',b:'Alfil',r:'Torre',q:'Dama',k:'Rey'})[type]}
+function announceTypeSelection(){
+ const spots=playableOriginsForType(selectedType);
+ $('typeSelectionStatus').textContent='Tipo elegido: '+typeName(selectedType)+'. '+spots.length+' piezas con movimientos legales.';
+}
+function selectGuidedOrigin(square){
+ const picker=$('pieceSelect');
+ if(![...picker.options].some(option=>option.value===square))return false;
+ picker.value=square;
+ refreshDestinations();
+ announceTypeSelection();
+ return true;
+}
+$('nextType').onclick=()=>{
+ const available=TYPE_ORDER.filter(type=>playableOriginsForType(type).length);
+ if(!available.length)return say('No hay piezas con movimientos legales.');
+ let index=available.indexOf(selectedType);
+ selectedType=available[(index+1)%available.length];
+ const square=playableOriginsForType(selectedType)[0];
+ selectGuidedOrigin(square);
+ say('Tipo de pieza: '+typeName(selectedType)+'. Seleccionada '+desc(square)+'. Para recorrer posiciones del mismo tipo, activá Siguiente pieza de este tipo.');
+};
+$('nextSameType').onclick=()=>{
+ const squares=playableOriginsForType(selectedType);
+ if(!squares.length)return say('No hay '+typeName(selectedType)+' con movimientos legales. Activá Cambiar tipo de pieza.');
+ const current=squares.indexOf($('pieceSelect').value);
+ const square=squares[(current+1)%squares.length];
+ selectGuidedOrigin(square);
+ say('Pieza seleccionada: '+desc(square)+'. Ahora podés elegir el destino legal.');
+};
+function render(){const focused=document.activeElement?.dataset.square;refreshGuided();const root=$('board');root.replaceChildren();const opts=chosen?currentLegal().filter(m=>m.from===chosen).map(m=>m.to):[];for(let y=7;y>=0;y--)for(let x=0;x<8;x++){const s=sq(x,y),p=board[s],btn=document.createElement('button');btn.type='button';btn.dataset.square=s;btn.tabIndex=s===activeSquare?0:-1;btn.onfocus=()=>{activeSquare=s;updateBoardTabstop()};btn.onkeydown=e=>boardKey(e,s);btn.className=(x+y)%2?'light':'dark';if(chosen===s)btn.classList.add('chosen');if(opts.includes(s))btn.classList.add('hint');btn.textContent=p?G[p]:'·';btn.setAttribute('aria-label',desc(s)+(chosen===s?', seleccionada':'')+(opts.includes(s)?', destino posible':''));btn.onclick=()=>pick(s);root.appendChild(btn)}if(focused)root.querySelector('[data-square="'+focused+'"]')?.focus();$('summary').textContent=ended?'Partida terminada.': 'Turno de '+SIDE[turn]+(check(board,turn)?'. Rey en jaque.':'')}
+function pick(s){if(ended){say('La partida terminó. Pulsá Nueva partida.');return}if(turn==='b'&&$('bot').checked){say('La computadora juega con negras.');return}if(!chosen){if(board[s]&&board[s][0]===turn){chosen=s;render();say('Seleccionaste '+desc(s)+'. '+currentLegal().filter(m=>m.from===s).length+' opciones legales.')}else say(desc(s)+'. No es una pieza del turno actual.')}else{const from=chosen;chosen=null;const m=currentLegal().find(m=>m.from===from&&m.to===s);if(m)requestMove(from,s);else{render();say('Destino ilegal para '+desc(from)+'. Seleccioná de nuevo una pieza.')}}}
+function humanMove(a,b){const promotion=b.slice(2).toLowerCase();b=b.slice(0,2);a=a.trim().toUpperCase();b=b.trim().toUpperCase();if(ended)return say('Partida terminada.');if(turn==='b'&&$('bot').checked)return say('Ahora responde la computadora.');const m=currentLegal().find(m=>m.from===a&&m.to===b);if(!m)return say('Movimiento ilegal o coordenadas incorrectas. Verificá origen y destino, o consultá destinos legales.');requestMove(a,b,promotion)}
+function evaluate(b){let score=0;for(const [s,p] of Object.entries(b)){const y=Number(s[1]);score+=(p[0]==='b'?1:-1)*(VALUES[p[1]]+(p[1]==='p'?(p[0]==='b'?8-y:y-1)*7:0))}return score}
+function searchState(b,m,r){const rights={...r},p=b[m.from];if(p[1]==='k'){rights[p[0]+'K']=false;rights[p[0]+'Q']=false}for(const [s,k] of Object.entries({A1:'wQ',H1:'wK',A8:'bQ',H8:'bK'}))if(m.from===s||m.to===s)rights[k]=false;const pass=p[1]==='p'&&Math.abs(+m.to[1]-m.from[1])===2?m.from[0]+((+m.to[1]+Number(m.from[1]))/2):null;return {rights,pass}}
+function optionsFor(b,c,r,e){return legal(b,c,r,e)}
+function chooseBot(){const moves=currentLegal();if(!moves.length)return null;const difficulty=Number($('difficulty').value);if(difficulty===0)return moves[Math.floor(Math.random()*moves.length)];let ranked=moves.map(m=>{const next=applied(board,m).b,state=searchState(board,m,castle);let v=evaluate(next);const oppMoves=optionsFor(next,'w',state.rights,state.pass);if(oppMoves.length===0)v=check(next,'w')?100000:-500;else if(difficulty>=2){let replies=oppMoves.map(o=>evaluate(applied(next,o).b));v=Math.min(...replies);if(difficulty>=3){replies=oppMoves.map(o=>{const nb=applied(next,o).b;const replyState=searchState(next,o,state.rights);const counter=optionsFor(nb,'b',replyState.rights,replyState.pass);return counter.length?Math.max(...counter.map(c=>evaluate(applied(nb,c).b))):evaluate(nb)});v=Math.min(...replies)}}return{m,v:v+(Math.random()-.5)*(difficulty===1?85:10)}});ranked.sort((a,b)=>b.v-a.v);return ranked[0].m}
+// Adaptador UCI de Stockfish: solo activo cuando se suministran los archivos oficiales en un servidor web.
+let sfWorker=null,sfReady=false,sfWaiting=false,sfWatchdog=null;
+function sfStatus(t){$('engineStatus').textContent=t}
+function sfStop(){if(sfWorker){sfWorker.terminate();sfWorker=null}sfReady=false;sfWaiting=false;clearTimeout(sfWatchdog)}
+function sfFallback(reason){sfStop();$('engineMode').value='fallback';sfStatus(reason+' Rival incorporado activado.');}
+function sfFen(){let rows=[];for(let y=7;y>=0;y--){let row='',empty=0;for(let x=0;x<8;x++){const p=board[sq(x,y)];if(!p){empty++;continue}if(empty){row+=empty;empty=0}const c=p[1]==='n'?'n':p[1];row+=p[0]==='w'?c.toUpperCase():c}if(empty)row+=empty;rows.push(row)}let rights=['wK','wQ','bK','bQ'].filter(k=>castle[k]).map(k=>({wK:'K',wQ:'Q',bK:'k',bQ:'q'})[k]).join('')||'-';return rows.join('/')+' '+turn+' '+rights+' '+(ep?ep.toLowerCase():'-')+' '+halfmove+' '+(Math.floor(history.length/2)+1)}
+function sfConnect(){sfStop();if($('engineMode').value!=='stockfish'){sfStatus('Rival incorporado seleccionado.');return}if(location.protocol==='file:'){sfFallback('Stockfish no se carga directamente desde Descargas. Hace falta abrir la aplicación alojada en HTTPS.');return}try{sfStatus('Iniciando Stockfish.');sfWorker=new Worker('./stockfish-19-lite-single.js');sfWorker.onmessage=ev=>{let line=String(ev.data||'');if(line.includes('uciok'))sfWorker.postMessage('isready');if(line.includes('readyok')){sfReady=true;clearTimeout(sfWatchdog);sfStatus('Stockfish conectado y listo.');if(sfWaiting&&turn==='b'){sfWaiting=false;sfSearch()}}if(line.startsWith('bestmove ')&&sfWaiting){sfWaiting=false;clearTimeout(sfWatchdog);const uci=line.split(/\s+/)[1].toUpperCase();const candidate=currentLegal().find(m=>m.from===uci.slice(0,2)&&m.to===uci.slice(2,4)&&(m.promotion||'')===uci.slice(4,5).toLowerCase());if(candidate&&turn==='b'&&!ended)play(candidate,true);else sfFallback('Stockfish devolvió una jugada no válida para el tablero actual.')}};sfWorker.onerror=()=>sfFallback('No se pudieron cargar los archivos de Stockfish.');sfWorker.postMessage('uci');sfWatchdog=setTimeout(()=>{if(!sfReady)sfFallback('Stockfish no respondió a tiempo.')},10000)}catch(e){sfFallback('El navegador no pudo iniciar Stockfish: '+e.message)}}
+function sfSearch(){if(sfWaiting)return;if(!sfWorker||!sfReady){sfFallback('Stockfish no estaba listo.');botMove();return}sfWaiting=true;const elo=[800,1100,1500,1900][Number($('difficulty').value)||0];sfWorker.postMessage('setoption name UCI_LimitStrength value true');sfWorker.postMessage('setoption name UCI_Elo value '+elo);sfWorker.postMessage(uciHistory.length===sanHistory.length&&!pgnStartFen?'position startpos moves '+uciHistory.join(' '):'position fen '+sfFen());sfWorker.postMessage('go movetime 750');clearTimeout(sfWatchdog);sfWatchdog=setTimeout(()=>{if(sfWaiting){sfFallback('Stockfish tardó demasiado en responder.');botMove()}},9000)}
+$('engineConnect').onclick=sfConnect;
+$('engineMode').onchange=()=>{if($('engineMode').value==='stockfish')sfConnect();else{sfStop();sfStatus('Rival incorporado seleccionado.')}};
+function botMove(){if(sfWaiting)return;if(ended||turn!=='b'||!$('bot').checked)return;try{if($('engineMode').value==='stockfish'){if(sfReady){sfSearch();return}sfFallback('Stockfish no estaba conectado.')}const move=chooseBot();if(move)play(move,true);else say('Las negras no tienen movimientos legales.')}catch(err){say('Ocurrió un error en el motor: '+err.message)}}
+function playSpatialNote(square, startAt, gainFactor=1){
+ if(!audio)return;
+ try{
+  const [x,y]=xy(square),t=Math.max(audio.currentTime+.01,startAt);
+  const volume=Number($('soundVolume').value)/100;
+  if(volume===0)return;
+  const peak=Math.min(.18,volume*.23*gainFactor);
+  const source=audio.createOscillator(),color=audio.createBiquadFilter();
+  const envelope=audio.createGain(),leftRight=audio.createStereoPanner();
+  source.type='triangle';source.frequency.setValueAtTime(245+32*y,t);
+  color.type='lowpass';color.frequency.value=930;color.Q.value=.5;
+  const pan=(x-3.5)/3.5;
+  leftRight.pan.setValueAtTime(pan,t);
+  leftRight.pan.linearRampToValueAtTime(Math.max(-1,Math.min(1,pan+.12)),t+.42);
+  leftRight.pan.linearRampToValueAtTime(pan,t+.78);
+  source.connect(color);color.connect(envelope);envelope.connect(leftRight);
+  leftRight.connect(audio.destination);
+  envelope.gain.setValueAtTime(.00001,t);
+  envelope.gain.linearRampToValueAtTime(peak*.52,t+.20);
+  envelope.gain.linearRampToValueAtTime(peak,t+.46);
+  envelope.gain.exponentialRampToValueAtTime(.00001,t+.88);
+  source.start(t);source.stop(t+.90);
+ }catch(e){}
+}
+function tone(square){playSpatialNote(square,audio?.currentTime||0);}
+function movementTones(from,to){
+ if(!audio)return;
+ const wait=Number($('soundDelay').value)/1000;
+ const t=audio.currentTime+wait;
+ if($('soundMode').value==='both'){playSpatialNote(from,t,.55);playSpatialNote(to,t+.95,1);}
+ else playSpatialNote(to,t,1);
+}
+$('soundVolume').oninput=()=>{$('soundVolumeValue').textContent=$('soundVolume').value+' por ciento'};
+$('soundTest').onclick=()=>{
+ if(!audio)return say('Primero activá sonido estéreo.');
+ const t=audio.currentTime+.05;
+ playSpatialNote('A4',t,.8);playSpatialNote('H4',t+.95,.8);
+ say('Prueba estéreo: primero izquierda, después derecha.');
+};
+
+const lessons={p:'Peón. Los ocho peones blancos comienzan en A2 hasta H2. Avanza una casilla hacia adelante; desde su posición inicial puede avanzar dos si están vacías. Captura una casilla en diagonal hacia adelante. Al llegar al extremo contrario se corona. Ejemplo: E2 a E4.',r:'Torre. Las torres blancas comienzan en A1 y H1. Se desplazan cualquier cantidad de casillas en línea recta horizontal o vertical, sin saltar piezas. Ejemplo: torre de D4 a D7.',n:'Caballo. Los caballos blancos comienzan en B1 y G1. Se mueven dos casillas en una dirección y una perpendicular, formando una L. Pueden saltar otras piezas. Ejemplo: G1 a F3.',b:'Alfil. Los alfiles blancos comienzan en C1 y F1. Se mueven en diagonal cualquier cantidad de casillas sin saltar otras piezas. Ejemplo: C4 a F7.',q:'Dama. La dama blanca comienza en D1, sobre casilla blanca. Combina movimientos de torre y alfil: líneas rectas y diagonales sin saltar piezas. Ejemplo: D4 a H8.',k:'Rey. El rey blanco comienza en E1. Se mueve una casilla en cualquier dirección; nunca puede colocarse bajo ataque. También participa en el enroque. Ejemplo: E4 a F5.'};
+function practiceLoad(){exPiece=$('piece').value;const origin=exPiece==='p'?'E2':exPiece==='n'?'G1':exPiece==='r'?'D4':exPiece==='b'?'C4':exPiece==='q'?'D4':'E4';exercise={[origin]:'w'+exPiece};exChosen=null;drawPractice();$('practiceStatus').textContent='Ejercicio cargado: '+desc(origin,exercise)+'. Seleccioná esa casilla y después un destino.'}
+function practiceMoves(){if(!exChosen)return[];return raw(exercise,'w',{},null).filter(m=>m.from===exChosen).map(m=>m.to)}
+function drawPractice(){const el=$('practiceBoard');el.replaceChildren();el.style.cssText='display:grid;grid-template-columns:repeat(8,minmax(34px,1fr));max-width:560px;border:2px solid #222';const available=practiceMoves();for(let y=7;y>=0;y--)for(let x=0;x<8;x++){const s=sq(x,y),p=exercise[s],b=document.createElement('button');b.type='button';b.className=(x+y)%2?'light':'dark';b.style.cssText='min-width:0;aspect-ratio:1;padding:0;margin:0;border:1px solid #666;font-size:clamp(19px,5.6vw,38px)';b.textContent=p?G[p]:'·';b.setAttribute('aria-label',desc(s,exercise)+(available.includes(s)?', destino permitido':''));b.onclick=()=>{if(!exChosen){if(!p)return $('practiceStatus').textContent=desc(s,exercise)+'. Elegí la pieza del ejercicio.';exChosen=s;drawPractice();$('practiceStatus').textContent='Seleccionaste '+desc(s,exercise)+'. Destinos posibles: '+practiceMoves().join(', ');}else{if(available.includes(s)){$('practiceStatus').textContent='Correcto. '+N[exPiece]+' de '+exChosen+' a '+s+'. Podés cargar otra vez el ejercicio.';exercise={[s]:'w'+exPiece};exChosen=null;drawPractice();tone(s)}else{exChosen=null;drawPractice();$('practiceStatus').textContent='Ese destino no está permitido. Probá de nuevo.'}}};el.appendChild(b)}}
+// Audio exploration does not alter board, game turn, or guided selectors.
+let squareLast='Elegí una coordenada y activá Consultar casilla.';
+let squareQueryToken=0;
+let squareLastCoordinate='';
+function announceSquare(text,playSound=false,square=''){
+ squareLast=text;
+ const old=$('squareResult'),next=old.cloneNode(false);
+ next.textContent=text;next.setAttribute('aria-label',text);
+ next.onclick=()=>repeatSquare();
+ old.replaceWith(next);
+ const token=++squareQueryToken;
+ requestAnimationFrame(()=>next.focus({preventScroll:false}));
+ if(playSound&&audio&&square){
+  setTimeout(()=>{if(token===squareQueryToken&&audio)playSpatialNote(square,audio.currentTime+.02)},Number($('soundDelay').value)||1200);
+ }
+}
+function querySquare(){
+ const s=$('squareQuery').value.trim().toUpperCase();
+ if(!/^[A-H][1-8]$/.test(s))return announceSquare('Coordenada no válida. Escribí una letra de A a H y un número de 1 a 8. Por ejemplo E4.');
+ $('squareQuery').value=s;
+ squareLastCoordinate=s;
+ announceSquare('Casilla '+desc(s)+'. '+(audio?'La posición sonora se reproducirá después del anuncio.':'Para escuchar la posición espacial, activá primero sonido estéreo.'),true,s);
+}
+$('squareQueryButton').onclick=querySquare;
+$('squareNext').onclick=()=>{
+ const s=$('squareQuery').value.trim().toUpperCase();
+ const index=/^[A-H][1-8]$/.test(s)?(Number(s[1])-1)*8+F.indexOf(s[0]):-1;
+ const next=(index+1)%64;
+ $('squareQuery').value=F[next%8]+(Math.floor(next/8)+1);
+ querySquare();
+};
+function repeatSquare(){
+ if(squareLastCoordinate&&/^[A-H][1-8]$/.test(squareLastCoordinate)){
+  // Repeat the stored coordinate, not whatever the user is currently typing.
+  const s=squareLastCoordinate;
+  announceSquare('Consulta repetida. Casilla '+desc(s)+'. '+(audio?'Repitiendo su posición sonora.':'Activá sonido estéreo para escuchar su posición.'),true,s);
+ } else announceSquare('Todavía no hay una casilla válida para repetir.');
+}
+$('squareRepeat').onclick=repeatSquare;
+$('squarePrevious').onclick=()=>{
+ const s=$('squareQuery').value.trim().toUpperCase();
+ const index=/^[A-H][1-8]$/.test(s)?(Number(s[1])-1)*8+F.indexOf(s[0]):0;
+ const previous=(index+63)%64;
+ $('squareQuery').value=F[previous%8]+(Math.floor(previous/8)+1);
+ querySquare();
+};
+$('squareRowStart').onclick=()=>{
+ const s=$('squareQuery').value.trim().toUpperCase();
+ const rank=/^[A-H][1-8]$/.test(s)?s[1]:'1';
+ $('squareQuery').value='A'+rank;
+ querySquare();
+};
+// Spatial memory queries: no forced focus, no moves, no speech synthesis.
+let memoryFileIndex=0,memoryRank=1;
+function spatialMessage(message){
+ // New focused output only in spatial-memory controls. Do not touch the chess selectors.
+ const previous=$('memoryMessage'),result=previous.cloneNode(false);
+ result.textContent=message;result.setAttribute('aria-label',message);
+ result.setAttribute('aria-live','off');
+ result.onclick=()=>{result.blur();requestAnimationFrame(()=>result.focus({preventScroll:true}))};
+ previous.replaceWith(result);
+ requestAnimationFrame(()=>result.focus({preventScroll:false}));
+}
+let memoryLastReviewed=0;
+let lastMoveBySide={w:null,b:null};
+function readLastPiece(color){
+ const m=lastMoveBySide[color];
+ if(!m)return spatialMessage('Todavía no se movió ninguna pieza '+(color==='w'?'blanca':'negra')+' durante esta partida.');
+ const actual=board[m.to],expected=color+m.piece;
+ const state=actual===expected?'Sigue en '+m.to+'.':actual&&actual[0]===color?'La casilla ahora contiene otra pieza propia.':'Ya no está en esa casilla; puede haber sido capturada o movida nuevamente.';
+ spatialMessage('Última pieza '+(color==='w'?'blanca':'negra')+' movida: '+N[m.piece]+' de '+m.from+' a '+m.to+'. '+state);
+}
+$('memoryMyLast').onclick=()=>readLastPiece('w');
+$('memoryTheirLast').onclick=()=>readLastPiece('b');
+
+function summarizeChanges(){
+ const pendingMoves=history.slice(memoryLastReviewed);
+ memoryLastReviewed=history.length;
+ if(!pendingMoves.length)return spatialMessage('No hubo movimientos desde la última consulta.');
+ const max=8;
+ const shown=pendingMoves.slice(-max);
+ const omitted=pendingMoves.length-shown.length;
+ const beginning=omitted?'Hubo '+pendingMoves.length+' movimientos desde la última consulta. Se detallan los últimos '+max+'. ':'Cambios desde la última consulta. ';
+ spatialMessage(beginning+shown.join(' ')+' '+(omitted?'Para ver los anteriores, consultá el historial. ':'')+'Posición actual: '+$('summary').textContent);
+}
+$('memoryChanges').onclick=summarizeChanges;
+
+function describeOwnAttack(square){
+ const piece=board[square];
+ if(!piece||piece[0]!=='w')return 'La casilla '+square+' no contiene una pieza blanca. Seleccioná una pieza blanca en Jugada guiada.';
+ const attacked=threatened(board,square,'b');
+ const defenders=threatened(board,square,'w');
+ return N[piece[1]]+' blanco en '+square+(attacked?' está atacado por una o más piezas negras.':' no está atacado por piezas negras en la posición actual.')+(attacked?(defenders?' También tiene al menos una pieza blanca que defiende esa casilla.':' No se detecta una pieza blanca que defienda esa casilla.'):'')+' Esta consulta informa ataques a casillas, no determina si una captura es conveniente.';
+}
+$('memoryPieceThreat').onclick=()=>{
+ const square=$('pieceSelect').value;
+ spatialMessage(square?describeOwnAttack(square):'No hay ninguna pieza blanca seleccionada.');
+};
+$('memoryAllThreats').onclick=()=>{
+ const attacked=Object.keys(board).sort().filter(s=>board[s][0]==='w'&&threatened(board,s,'b'));
+ spatialMessage(attacked.length?'Piezas blancas atacadas, '+attacked.length+'. '+attacked.map(s=>N[board[s][1]]+' en '+s).join('; ')+'. Una pieza atacada no necesariamente está perdida.':'Ninguna pieza blanca está atacada actualmente.');
+};
+
+function spatialPosition(){$('memoryPosition').textContent='Columna '+F[memoryFileIndex]+'. Fila '+memoryRank+'.'}
+function listPieces(color){const entries=Object.keys(board).sort().filter(s=>board[s]?.[0]===color);const side=color==='w'?'blancas':'negras';spatialMessage('Piezas '+side+', '+entries.length+' en el tablero. '+entries.map(s=>N[board[s][1]]+' en '+s).join('; ')+'.');}
+$('memoryWhite').onclick=()=>listPieces('w');
+$('memoryBlack').onclick=()=>listPieces('b');
+$('memoryLast').onclick=()=>spatialMessage(history.length?history[history.length-1]:'Todavía no se realizó ninguna jugada.');
+$('memoryNextFile').onclick=()=>{memoryFileIndex=(memoryFileIndex+1)%8;spatialPosition();spatialMessage('Columna seleccionada: '+F[memoryFileIndex]+'. Activá Leer esta columna para conocer sus piezas.')};
+$('memoryReadFile').onclick=()=>{const file=F[memoryFileIndex];const occupied=Array.from({length:8},(_,i)=>file+(i+1)).filter(s=>board[s]);spatialMessage('Columna '+file+'. '+(occupied.length?occupied.map(s=>desc(s)).join('; '):'Sin piezas')+'.')};
+$('memoryNextRank').onclick=()=>{memoryRank=memoryRank%8+1;spatialPosition();spatialMessage('Fila seleccionada: '+memoryRank+'. Activá Leer esta fila para conocer sus piezas.')};
+$('memoryReadRank').onclick=()=>{const squares=F.split('').map(file=>file+memoryRank).filter(s=>board[s]);spatialMessage('Fila '+memoryRank+'. '+(squares.length?squares.map(s=>desc(s)).join('; '):'Sin piezas')+'.')};
+
+$('nextPiece').onclick=()=>cycleGuided('pieceSelect','Pieza elegida');
+$('nextDestination').onclick=()=>cycleGuided('destinationSelect','Destino elegido');
+$('pieceSelect').onchange=()=>{selectedType=board[$('pieceSelect').value]?.[1]||'p';refreshDestinations();announceTypeSelection();const a=$('pieceSelect').value;if($('assist').value==='beginner')say(desc(a)+'. Destinos legales: '+currentLegal().filter(m=>m.from===a).map(m=>m.to).join(', '));};
+$('guidedMove').onclick=()=>{const a=$('pieceSelect').value,b=$('destinationSelect').value;if(!a||!b)return say('No hay jugadas disponibles.');humanMove(a,b)};
+$('guidedHelp').onclick=()=>{const a=$('pieceSelect').value;if(!a)return say('No hay una pieza seleccionada.');say(desc(a)+'. Destinos legales: '+currentLegal().filter(m=>m.from===a).map(m=>m.to).join(', '))};
+$('howMove').onclick=()=>{const a=$('pieceSelect').value;if(!board[a])return say('Seleccioná una pieza.');say(lessons[board[a][1]])};
+$('assist').onchange=()=>say('Modo de asistencia: '+$('assist').selectedOptions[0].textContent);
+$('tabPlay').onclick=()=>{ $('play').classList.remove('hidden');$('learn').classList.add('hidden');$('tabPlay').setAttribute('aria-pressed','true');$('tabLearn').setAttribute('aria-pressed','false');$('status').textContent='Modo Jugar abierto. '+$('summary').textContent};
+$('tabLearn').onclick=()=>{ $('learn').classList.remove('hidden');$('play').classList.add('hidden');$('tabPlay').setAttribute('aria-pressed','false');$('tabLearn').setAttribute('aria-pressed','true');$('lessonText').textContent='Modo aprender abierto. Seleccioná una pieza y pulsá Leer explicación.';$('lessonText').setAttribute('aria-label',$('lessonText').textContent)};
+// Lecturas de aprendizaje: sólo voz del lector de pantalla, sin sintetizador adicional.
+// Cada acción es explícita; no se avanza automáticamente y así no se pisa Ferda.
+let lessonChunks=[],lessonIndex=0;
+const initialLesson='Con blancas: en fila 1, de izquierda a derecha, torre A1, caballo B1, alfil C1, dama D1, rey E1, alfil F1, caballo G1, torre H1. Ocho peones de A2 a H2. Negras: misma distribución en fila 8, peones en fila 7. La dama siempre empieza en su propio color.';
+function makeChunks(txt){
+  return txt.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map(a=>a.trim()).filter(Boolean)||[txt];
+}
+function speakLesson(){
+  if(!lessonChunks.length)return;
+  const txt='Parte '+(lessonIndex+1)+' de '+lessonChunks.length+'. '+lessonChunks[lessonIndex];
+  // Un elemento NUEVO con foco nuevo es más fiable para lectores Android que
+  // cambiar el texto de un botón que ya conserva el foco accesible.
+  const previo=$('lessonText');
+  const el=previo.cloneNode(false);
+  el.textContent=txt;
+  el.setAttribute('aria-label',txt);
+  el.setAttribute('aria-live','off');
+  el.onclick=()=>speakLesson();
+  previo.replaceWith(el);
+  $('lessonProgress').textContent='Fragmento '+(lessonIndex+1)+' de '+lessonChunks.length+'. Usá Fragmento siguiente o Repetir explicación.';
+  // El retraso es solo un fotograma; no se programa una segunda voz.
+  requestAnimationFrame(()=>el.focus({preventScroll:false}));
+}
+function openLesson(txt){lessonChunks=makeChunks(txt);lessonIndex=0;speakLesson()}
+$('lesson').onclick=()=>openLesson(lessons[$('piece').value]);
+$('lessonRepeat').onclick=()=>speakLesson();
+// El botón recreado recibe su controlador en speakLesson().
+$('lessonNext').onclick=()=>{if(!lessonChunks.length)return openLesson(lessons[$('piece').value]);if(lessonIndex<lessonChunks.length-1){lessonIndex++;speakLesson()}else openLesson('Terminaste esta explicación. Podés practicar el movimiento de la pieza o elegir otra.')};
+$('lessonPrevious').onclick=()=>{if(!lessonChunks.length)return openLesson(lessons[$('piece').value]);lessonIndex=Math.max(0,lessonIndex-1);speakLesson()};
+$('piece').onchange=()=>{lessonChunks=[];lessonIndex=0;$('lessonText').textContent='Pieza elegida: '+N[$('piece').value]+'. Activá Escuchar explicación.';$('lessonText').setAttribute('aria-label',$('lessonText').textContent)};
+$('practice').onclick=practiceLoad;
+$('initial').onclick=()=>openLesson(initialLesson);
+$('reset').onclick=()=>{if(!history.length||confirm('Comenzar una partida nueva. La partida guardada manualmente se conserva. ¿Continuar?'))start()};$('save').onclick=()=>{say(persist()?'Partida guardada en este navegador.':'No se pudo guardar. El navegador puede bloquear almacenamiento local de archivos.');$('status').focus()};$('load').onclick=()=>restore();$('repeat').onclick=()=>say(last);$('readBot').onclick=()=>say(lastBlack);$('available').onclick=()=>{const f=chosen||$('from').value.trim().toUpperCase(),moves=currentLegal().filter(m=>m.from===f);say(moves.length?'Destinos legales de '+desc(f)+': '+moves.map(m=>m.to).join(', '):'Seleccioná una pieza de tu color, o escribí la coordenada en Origen.')};$('forceBot').onclick=()=>{if(turn!=='b')return say('Ahora corresponde jugar a blancas.');clearTimeout(pending);pending=null;botMove()};$('nextBot').onclick=()=>{if(turn!=='b'||!$('bot').checked)return say('Todavía no corresponde la respuesta de la computadora.');clearTimeout(pending);pending=null;botMove()};$('responseMode').onchange=()=>{if(pending){clearTimeout(pending);pending=null;}if(turn==='b'&&$('bot').checked&&!ended&&$('responseMode').value!=='manual'){const token=gameToken;pending=setTimeout(()=>{if(token===gameToken)botMove()},Number($('responseMode').value)*1000)}say($('responseMode').value==='manual'?'Respuesta manual: activá Escuché mi jugada cuando quieras que jueguen negras.':'Respuesta automática: la computadora esperará '+$('responseMode').value+' segundos.');};$('bot').onchange=()=>{if(!$('bot').checked&&sfWorker)sfStop();gameToken++;clearTimeout(pending);say($('bot').checked?'Rival automático activado.':'Rival automático desactivado. Podés jugar ambos colores.');if($('bot').checked&&turn==='b'&&$('responseMode').value!=='manual')pending=setTimeout(botMove,Number($('responseMode').value)*1000)};$('moveForm').onsubmit=e=>{e.preventDefault();humanMove($('from').value,$('to').value)};$('audio').onclick=async()=>{try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();await audio.resume();$('audio').textContent='Sonido estéreo activado';say('Sonido estéreo activado. La izquierda y derecha indican columnas. La altura se representa con tonos, no con sonido 3D real.')}catch(e){say('No fue posible activar el sonido.')}};
+// Ejercicios guiados, sin alterar la partida ni el sistema de lectura de las lecciones.
+const guidedData={
+ p:[{at:'E2',goal:'E4',choices:['E1','E3','E4','F4'],hint:'Un peón blanco, desde su casilla de salida, puede avanzar dos casillas si el camino está libre.',reason:'Desde E2 el peón blanco avanza dos casillas hasta E4.'},{at:'D4',goal:'D5',choices:['D3','C5','D5','E5'],hint:'Los peones blancos avanzan una casilla hacia el número de fila mayor. No capturan hacia delante.',reason:'Desde D4 el peón avanza a D5.'}],
+ n:[{at:'G1',goal:'F3',choices:['G3','F3','F2','H2'],hint:'El caballo avanza dos casillas en una dirección y una perpendicular; desde G1 puede ir a F3.',reason:'De G1 a F3 forma una L.'},{at:'D4',goal:'E6',choices:['D6','E6','F5','E5'],hint:'Desde D4 el caballo puede ir una columna a la derecha y dos filas hacia arriba.',reason:'De D4 a E6 es un salto en L.'}],
+ b:[{at:'C4',goal:'F7',choices:['C7','F7','F4','C5'],hint:'El alfil se mueve en diagonal, avanzando igual cantidad de filas y columnas.',reason:'De C4 a F7 avanza tres columnas y tres filas en diagonal.'},{at:'F1',goal:'C4',choices:['F4','C4','C1','E3'],hint:'Buscá una casilla a tres columnas hacia la izquierda y tres filas arriba.',reason:'De F1 a C4 es una diagonal.'}],
+ r:[{at:'D4',goal:'D8',choices:['E5','D8','H8','C5'],hint:'La torre se mueve por una fila o por una columna, sin girar.',reason:'De D4 a D8 permanece en la misma columna.'},{at:'A3',goal:'F3',choices:['F3','F5','C5','G4'],hint:'La torre puede moverse horizontalmente por la misma fila.',reason:'A3 a F3 es un movimiento horizontal.'}],
+ q:[{at:'D4',goal:'H8',choices:['H7','H8','G8','F7'],hint:'La dama puede desplazarse por filas, columnas o diagonales.',reason:'D4 a H8 es un movimiento diagonal de dama.'},{at:'D4',goal:'D7',choices:['E7','D7','G5','C6'],hint:'La dama también se mueve en línea recta, como la torre.',reason:'D4 a D7 es un movimiento vertical.'}],
+ k:[{at:'E4',goal:'F5',choices:['F6','E6','F5','G4'],hint:'El rey solamente puede desplazarse una casilla en cualquier dirección, si no está amenazada.',reason:'E4 a F5 es un paso diagonal de una casilla.'},{at:'E4',goal:'E5',choices:['E6','G4','E5','C4'],hint:'El rey puede avanzar una casilla recta.',reason:'E4 a E5 es un paso vertical.'}]
+};
+let guidedCurrent=null,guidedIndex={},guidedHits=0,guidedAttempts=0;
+function guidedSpeak(message){
+ const prev=$('guidedAnnouncement'),b=prev.cloneNode(false);b.textContent=message;b.setAttribute('aria-label',message);b.onclick=()=>guidedSpeak(message);prev.replaceWith(b);requestAnimationFrame(()=>b.focus());
+}
+function guidedStart(){const piece=$('guidedPiece').value,entries=guidedData[piece],i=guidedIndex[piece]||0;guidedCurrent={...entries[i%entries.length],piece};const target=$('guidedDestination');target.replaceChildren();const empty=document.createElement('option');empty.value='';empty.textContent='Elegí una casilla';target.appendChild(empty);for(const square of guidedCurrent.choices){const op=document.createElement('option');op.value=square;op.textContent=square;target.appendChild(op)}guidedSpeak('Ejercicio de '+N[piece]+'. La pieza blanca está en '+guidedCurrent.at+'. Elegí la casilla correcta entre las opciones y activá Comprobar respuesta.');}
+$('guidedBegin').onclick=guidedStart;
+$('guidedHear').onclick=()=>guidedCurrent?guidedSpeak('La pieza '+N[guidedCurrent.piece]+' blanca está en '+guidedCurrent.at+'. Elegí un destino correcto.'):guidedSpeak('Primero activá Comenzar ejercicio.');
+$('guidedHint').onclick=()=>guidedCurrent?guidedSpeak('Pista. '+guidedCurrent.hint):guidedSpeak('Primero comenzá un ejercicio.');
+$('guidedCheck').onclick=()=>{if(!guidedCurrent)return guidedSpeak('Primero activá Comenzar ejercicio.');const value=$('guidedDestination').value;if(!value)return guidedSpeak('Todavía no elegiste destino. Abrí Elegir destino y seleccioná una casilla.');guidedAttempts++;if(value===guidedCurrent.goal){guidedHits++;guidedSpeak('Correcto. '+N[guidedCurrent.piece]+' blanco de '+guidedCurrent.at+' a '+value+'. '+guidedCurrent.reason+' Para practicar otra posición activá Otro ejercicio de esta pieza.');}else{guidedSpeak('Todavía no. Elegiste '+value+'. '+guidedCurrent.hint+' Podés intentar de nuevo.');} $('guidedScore').textContent='Aciertos de esta sesión: '+guidedHits+'. Respuestas enviadas: '+guidedAttempts+'.';};
+$('guidedAgain').onclick=()=>{const piece=$('guidedPiece').value;guidedIndex[piece]=(guidedIndex[piece]||0)+1;guidedStart();};
+$('guidedPiece').onchange=()=>{guidedCurrent=null;$('guidedDestination').replaceChildren();const op=document.createElement('option');op.textContent='Activá Comenzar ejercicio';op.value='';$('guidedDestination').appendChild(op);};
+
+
+// Curso progresivo independiente de la partida y de los ejercicios libres.
+const COURSE_KEY='ajedrez-inclusivo-curso-v63';
+const courseList=[
+ {title:'1. Peón: avance inicial',piece:'p',index:0,instruction:'Avanzá dos casillas hacia delante.'},
+ {title:'2. Peón: avanzar una casilla',piece:'p',index:1,instruction:'Avanzá una casilla hacia delante.'},
+ {title:'3. Caballo: salto desde G1',piece:'n',index:0,instruction:'Saltá dos filas hacia delante y una columna a la izquierda.'},
+ {title:'4. Caballo: salto desde D4',piece:'n',index:1,instruction:'Saltá dos filas hacia delante y una columna a la derecha.'},
+ {title:'5. Alfil: diagonal larga',piece:'b',index:0,instruction:'Movete tres filas hacia delante y tres columnas a la derecha.'},
+ {title:'6. Alfil: diagonal desde F1',piece:'b',index:1,instruction:'Movete tres filas hacia delante y tres columnas a la izquierda.'},
+ {title:'7. Torre: columna',piece:'r',index:0,instruction:'Avanzá cuatro filas en la misma columna.'},
+ {title:'8. Torre: fila',piece:'r',index:1,instruction:'Movete cinco columnas a la derecha sin cambiar de fila.'},
+ {title:'9. Dama: diagonal',piece:'q',index:0,instruction:'Movete cuatro filas hacia delante y cuatro columnas a la derecha.'},
+ {title:'10. Dama: columna',piece:'q',index:1,instruction:'Movete tres filas hacia delante en la misma columna.'},
+ {title:'11. Rey: un paso diagonal',piece:'k',index:0,instruction:'Movete una fila hacia delante y una columna a la derecha.'},
+ {title:'12. Rey: un paso recto',piece:'k',index:1,instruction:'Movete una fila hacia delante en la misma columna.'}
+];
+let courseProgress={completed:[],attempts:0,correct:0};
+let courseActive=null,courseUsedHint=false,courseSolved=false;
+function loadCourse(){try{const p=JSON.parse(localStorage.getItem(COURSE_KEY)||'null');if(p&&Array.isArray(p.completed)){courseProgress={completed:p.completed.filter(i=>Number.isInteger(i)&&i>=0&&i<courseList.length),attempts:Number(p.attempts)||0,correct:Number(p.correct)||0}}}catch(e){} }
+function storeCourse(){try{localStorage.setItem(COURSE_KEY,JSON.stringify(courseProgress));return true}catch(e){return false}}
+function courseSay(text){const old=$('courseAnnouncement'),next=old.cloneNode(false);next.textContent=text;next.setAttribute('aria-label',text);next.onclick=()=>courseSay(text);old.replaceWith(next);requestAnimationFrame(()=>next.focus())}
+function courseUpdate(){const total=courseProgress.completed.length;const next=courseList.findIndex((_,i)=>!courseProgress.completed.includes(i));$('courseProgress').textContent='Lecciones aprobadas: '+total+' de '+courseList.length+'. Respuestas correctas: '+courseProgress.correct+' de '+courseProgress.attempts+'. '+(next<0?'Terminaste las doce lecciones.':'Próxima lección pendiente: '+courseList[next].title+'.');[...$('courseLesson').options].forEach((o,i)=>{o.textContent=courseList[i].title+(courseProgress.completed.includes(i)?', aprobada':'')})}
+function courseStart(){let id=Number($('courseLesson').value);if(!Number.isInteger(id)||id<0||id>=courseList.length)id=0;const info=courseList[id],example=guidedData[info.piece][info.index];courseActive={id,...example,piece:info.piece};courseUsedHint=false;courseSolved=false;const select=$('courseDestination');select.replaceChildren();const empty=document.createElement('option');empty.value='';empty.textContent='Elegí un destino';select.appendChild(empty);for(const sq of example.choices){const opt=document.createElement('option');opt.value=sq;opt.textContent=sq;select.appendChild(opt)}courseSay(info.title+'. Tenés '+N[info.piece]+' blanco en '+example.at+'. '+info.instruction+' Elegí el destino indicado y activá Evaluar respuesta.');}
+function courseGoNext(){const current=Number($('courseLesson').value);const next=Math.min(courseList.length-1,current+1);$('courseLesson').value=String(next);courseStart()}
+loadCourse();
+for(let i=0;i<courseList.length;i++){const opt=document.createElement('option');opt.value=String(i);$('courseLesson').appendChild(opt)}
+const firstPending=courseList.findIndex((_,i)=>!courseProgress.completed.includes(i));$('courseLesson').value=String(firstPending>=0?firstPending:0);courseUpdate();
+$('courseBegin').onclick=courseStart;
+$('courseRepeat').onclick=()=>courseActive?courseSay(courseList[courseActive.id].title+'. '+N[courseActive.piece]+' blanco en '+courseActive.at+'. '+courseList[courseActive.id].instruction+' Elegí el destino indicado.'):courseSay('Primero activá Comenzar lección.');
+$('courseHint').onclick=()=>{if(!courseActive)return courseSay('Primero comenzá una lección.');courseUsedHint=true;courseSay('Pista. '+courseActive.hint+' Para aprobar sin ayuda, podés comenzar la lección otra vez.')};
+$('courseCheck').onclick=()=>{
+ if(!courseActive)return courseSay('Primero comenzá una lección.');
+ if(courseSolved)return courseSay('Ya respondiste correctamente esta lección. Activá Siguiente lección o Comenzar lección para repetir.');
+ const answer=$('courseDestination').value;if(!answer)return courseSay('Seleccioná una casilla en Destino de la pieza.');
+ courseProgress.attempts++;
+ if(answer===courseActive.goal){courseProgress.correct++;courseSolved=true;const wasNew=!courseProgress.completed.includes(courseActive.id);if(!courseUsedHint && wasNew)courseProgress.completed.push(courseActive.id);courseUpdate();const saved=storeCourse();courseSay('Respuesta correcta. '+N[courseActive.piece]+' de '+courseActive.at+' a '+answer+'. '+courseActive.reason+' '+(courseUsedHint?'Usaste una pista. Para aprobar esta lección, repetila sin pistas.':wasNew?'Lección aprobada.':'Esta lección ya estaba aprobada.')+(saved?' Progreso guardado.':' No pude guardar el progreso en este navegador.'))}
+ else{storeCourse();courseUpdate();courseSay('Respuesta incorrecta. Elegiste '+answer+'. '+courseActive.hint+' Intentá nuevamente. Esta respuesta no cuenta como aprobación.')}
+};
+$('courseNext').onclick=courseGoNext;
+$('courseProgressRead').onclick=()=>courseSay($('courseProgress').textContent);
+$('courseReset').onclick=()=>{const ok=window.confirm('Vas a borrar solamente el progreso educativo de las doce lecciones en este navegador. No se borrarán tus partidas. ¿Confirmás?');if(!ok)return;courseProgress={completed:[],attempts:0,correct:0};courseActive=null;courseSolved=false;courseUsedHint=false;const saved=storeCourse();courseUpdate();$('courseLesson').value='0';courseSay(saved?'Progreso educativo reiniciado. Las partidas guardadas no se modificaron.':'Se reinició la sesión, pero no se pudo guardar el cambio.')};
+
+
+function setupAccessibleMenus(){
+ const play=$('play'),learn=$('learn');
+ const pl=[...play.children],le=[...learn.children];
+ // Structure assertions prevent unexpected loss of controls.
+ if(pl[0]?.tagName!=='H2'||pl[1]?.querySelector('#reset')==null||pl[8]?.querySelector('#pieceSelect')==null||!pl.some(n=>n.id==='memoryTitle'||n.querySelector?.('#memoryTitle')))return;
+ function menu(root,id,title){
+  const nav=document.createElement('nav');nav.id=id;nav.setAttribute('aria-label',title);
+  const heading=document.createElement('h3');heading.tabIndex=-1;heading.textContent=title;nav.append(heading);
+  root.append(nav);return nav;
+ }
+ function section(root,nav,id,name,nodes,isOpen=false){
+  const details=document.createElement('details');details.id=id;details.open=isOpen;
+  const summary=document.createElement('summary');summary.textContent=name;details.append(summary);
+  for(const n of nodes){if(n)details.append(n)}
+  const back=document.createElement('a');back.href='#'+nav.id;back.textContent='Volver al menú de '+(root===play?'Jugar':'Aprender');
+  back.className='menuBack';details.append(back);root.append(details);
+  // Preserve expansion state in a separate key, never in game or course data.
+  try{
+   const saved=sessionStorage.getItem('ajedrez-menu-'+id);
+   if(saved!==null)details.open=saved==='1';
+  }catch(e){}
+  details.addEventListener('toggle',()=>{try{sessionStorage.setItem('ajedrez-menu-'+id,details.open?'1':'0')}catch(e){}});
+  const jump=document.createElement('a');jump.href='#'+id;jump.textContent=name;
+  nav.append(jump);
+  return details;
+ }
+ const pm=menu(play,'playMenu','Menú de Jugar');
+ // Keep all movement announcements in the open playing section.
+ section(play,pm,'groupPlaying','Jugada guiada y partida',[pl[1],pl[8],pl[12],pl[14],pl[15],pl[16],pl[17],pl[18],pl[19]],true);
+ section(play,pm,'groupOpponent','Configuración del rival',[pl[3],pl[4],pl[5],pl[6],pl[7],pl[9],pl[10],pl[11],pl[13]]);
+ section(play,pm,'groupMemory','Memoria del tablero',[pl[20]]);
+ section(play,pm,'groupExploration','Exploración sonora de casillas',[pl[21]]);
+ section(play,pm,'groupSound','Sonido espacial',[pl[2]]);
+ section(play,pm,'groupBoard','Tablero interactivo',[pl[22]]);
+ section(play,pm,'groupHistory','Historial y partidas guardadas',[pl[23],pl[24],pl[25]]);
+ const lm=menu(learn,'learnMenu','Menú de Aprender');
+ // The introductory heading and short description remain before the menu.
+ const intro=le.slice(2,8);
+ section(learn,lm,'groupPieces','Aprender las piezas',intro,true);
+ section(learn,lm,'groupCourse','Curso progresivo de ajedrez',[le.find(n=>n.id==='courseSection')]);
+ section(learn,lm,'groupExercises','Ejercicios guiados',[le.find(n=>n.id==='guidedExercises')]);
+ const practiceTitle=le.find(n=>n.tagName==='H3'&&n.textContent==='Práctica de movimientos');
+ const conceptsTitle=le.find(n=>n.tagName==='H3'&&n.textContent==='Conceptos');
+ const ix=le.indexOf(practiceTitle),cx=le.indexOf(conceptsTitle);
+ if(ix>=0&&cx>ix){
+  section(learn,lm,'groupPractice','Tablero de práctica',le.slice(ix,cx));
+  section(learn,lm,'groupConcepts','Conceptos de ajedrez',le.slice(cx));
+ }
+}
+// Version 9 additions preserve the original course, menus and storage keys.
+let activeSquare='A1',sanHistory=[],pgnStartFen=null,uciHistory=[];
+const AUTO_KEY='ajedrez-inclusivo-v9-auto',PREF_KEY='ajedrez-inclusivo-v9-preferencias';
+function updateBoardTabstop(){for(const b of $('board').querySelectorAll('button'))b.tabIndex=b.dataset.square===activeSquare?0:-1}
+function explore(dx,dy,focus=true){const [x,y]=xy(activeSquare),nx=x+dx,ny=y+dy;if(!valid(nx,ny)){if(!focus)say('Borde del tablero. '+desc(activeSquare));return}activeSquare=sq(nx,ny);updateBoardTabstop();const b=$('board').querySelector('[data-square="'+activeSquare+'"]');if(focus)b.focus();else say(b.getAttribute('aria-label'));}
+function boardKey(e,s){if(e.altKey||e.ctrlKey||e.metaKey)return;const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[e.key];if(delta){e.preventDefault();activeSquare=s;explore(...delta)}}
+function requestMove(from,to,promotion){const options=currentLegal().filter(m=>m.from===from&&m.to===to);if(options.some(m=>m.promotion)&&!promotion){const dialog=$('promotionDialog');dialog.dataset.from=from;dialog.dataset.to=to;dialog.showModal();$('promotionChoice').focus();return}const m=options.find(m=>(m.promotion||'')===(promotion||''));if(m)play(m)}
+function insufficientMaterial(b){const non=Object.entries(b).filter(([,p])=>p[1]!=='k');if(!non.length)return true;if(non.length===1&&['b','n'].includes(non[0][1][1]))return true;return non.every(([,p])=>p[1]==='b')&&new Set(non.map(([s])=>{const [x,y]=xy(s);return (x+y)%2})).size===1}
+function moveSAN(m){if(m.castle)return m.castle==='K'?'O-O':'O-O-O';const p=board[m.from],capture=board[m.to]||m.ep;let out=p[1]==='p'?(capture?m.from[0].toLowerCase():''):p[1].toUpperCase();if(p[1]!=='p'){const other=currentLegal().filter(o=>o.from!==m.from&&o.to===m.to&&board[o.from]===p);if(other.length)out+=!other.some(o=>o.from[0]===m.from[0])?m.from[0].toLowerCase():!other.some(o=>o.from[1]===m.from[1])?m.from[1]:m.from.toLowerCase()}return out+(capture?'x':'')+m.to.toLowerCase()+(m.promotion?'='+m.promotion.toUpperCase():'')}
+function validateSave(o){if(!o.board||!['w','b'].includes(o.turn)||!o.castle||!Array.isArray(o.history)||o.history.some(x=>typeof x!=='string'))throw Error('Formato de partida inválido.');for(const [s,p]of Object.entries(o.board))if(!/^[A-H][1-8]$/.test(s)||!/^[wb][prnbqk]$/.test(p))throw Error('Pieza o casilla inválida.');for(const c of ['w','b'])if(Object.values(o.board).filter(p=>p===c+'k').length!==1)throw Error('Falta un rey o hay reyes duplicados.');if(o.ep!==null&&!/^[A-H][36]$/.test(o.ep))throw Error('Captura al paso inválida.');if(o.sanHistory&&(!Array.isArray(o.sanHistory)||o.sanHistory.some(s=>typeof s!=='string')))throw Error('Historial PGN inválido.');if(o.halfmove!==undefined&&(!Number.isInteger(o.halfmove)||o.halfmove<0))throw Error('Contador de movimientos inválido.');if(o.positionCounts&&Object.values(o.positionCounts).some(n=>!Number.isInteger(n)||n<1))throw Error('Repeticiones inválidas.');if(o.uciHistory&&(!Array.isArray(o.uciHistory)||o.uciHistory.some(m=>!/^([a-h][1-8]){2}[qrbn]?$/.test(m))))throw Error('Historial de jugadas inválido.');if(o.pgnStartFen&&typeof o.pgnStartFen!=='string')throw Error('Posición PGN inválida.');}
+
+function claimPlannedDraw(){
+ if(ended)return say('La partida ya terminó.');
+ if(turn==='b'&&$('bot').checked)return say('Solo podés reclamar tablas durante tu turno.');
+ const from=$('pieceSelect').value,destination=$('destinationSelect').value;
+ const m=currentLegal().find(m=>m.from===from&&m.to+(m.promotion||'')===destination);
+ if(!m)return say('Seleccioná una jugada legal en Jugada guiada.');
+ const next=applied(board,m),state=searchState(board,m,castle),nextTurn=opp(turn);
+ const pass=state.pass&&legal(next.b,nextTurn,state.rights,state.pass).some(m=>m.ep)?state.pass:'-';
+ const key=Object.keys(next.b).sort().map(s=>s+next.b[s]).join('|')+';'+nextTurn+';'+Object.keys(state.rights).sort().filter(k=>state.rights[k]).join(',')+';'+pass;
+ const fifty=board[m.from][1]!=='p'&&!next.captured&&!m.ep&&halfmove+1>=100;
+ if(!fifty&&(positionCounts[key]||0)+1<3)return say('La jugada indicada no permite reclamar tablas.');
+ ended=true;gameToken++;clearTimeout(pending);sfStop();render();autosave();say('Tablas reclamadas antes de ejecutar '+m.from+' a '+m.to+'. La jugada indicada no se realiza.');
+}
+
+function claimDraw(){if(turn==='b'&&$('bot').checked)return say('Solo podés reclamar tablas durante tu turno.');if(ended)return say('La partida ya terminó.');if(halfmove<100&&(positionCounts[positionKey()]||0)<3)return say('Todavía no se cumplen las condiciones para reclamar tablas.');ended=true;gameToken++;clearTimeout(pending);sfStop();render();autosave();say('Tablas reclamadas por '+(halfmove>=100?'cincuenta movimientos.':'triple repetición.'));}
+function autosave(){if(!persist(AUTO_KEY))say('No se pudo guardar automáticamente. Exportá PGN para conservar la partida.')}
+function exportPGN(){const result=ended?(check(board,turn)&&!currentLegal().length?(turn==='b'?'1-0':'0-1'):'1/2-1/2'):'*';let text='[Event "Ajedrez Inclusivo 9.0 candidata"]\n[Result "'+result+'"]\n';if(pgnStartFen)text+='[SetUp "1"]\n[FEN "'+pgnStartFen+'"]\n';const fields=pgnStartFen?.split(' ');let number=fields?Number(fields[5]):1,color=fields?fields[1]:'w';let moves=[];for(const san of sanHistory){moves.push((color==='w'?number+'. ':moves.length===0?number+'... ':'')+san);if(color==='b')number++;color=opp(color)}return text+'\n'+moves.join(' ')+' '+result+'\n'}
+function downloadPGN(){const url=URL.createObjectURL(new Blob([exportPGN()],{type:'application/x-chess-pgn'}));const a=document.createElement('a');a.href=url;a.download='ajedrez-inclusivo.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);say('PGN exportado.'+(pgnStartFen?' La partida antigua se exporta desde la posición recuperada.':''))}
+function exactAttackers(s,c){return Object.entries(board).filter(([a,p])=>{if(a===s||p[0]!==c)return false;const others={...board};for(const [z,q]of Object.entries(others))if(z!==a&&q[0]===c)others[z]=opp(c)+q[1];return threatened(others,s,c)})}
+function setupV9(){
+ const append=(id,html)=>$(id).insertAdjacentHTML('beforeend',html);
+ append('groupBoard','<p id="boardHelp">A1 está abajo a la izquierda. Tab entra y sale; las flechas exploran sin mover. Enter o Espacio seleccionan origen y destino. Con NVDA usá modo foco si las flechas recorren el documento.</p><div class="controls" id="spatialControls"></div><button id="spatialSelect">Seleccionar casilla explorada</button><button id="spatialListen">Escuchar casilla explorada</button>');
+ $('board').setAttribute('aria-describedby','boardHelp');
+ for(const [label,dx,dy]of [['Arriba',0,1],['Abajo',0,-1],['Izquierda',-1,0],['Derecha',1,0]]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>explore(dx,dy,false);$('spatialControls').append(b)}
+ $('spatialSelect').onclick=()=>pick(activeSquare);$('spatialListen').onclick=()=>{say(desc(activeSquare));if(audio)tone(activeSquare)};
+ document.querySelector('h1').insertAdjacentHTML('afterend','<p id="offlineStatus" role="status">Edición independiente: funciona sin conexión con el rival incorporado. No incluye Stockfish.</p>');
+ document.body.insertAdjacentHTML('beforeend','<dialog id="promotionDialog" aria-labelledby="promotionTitle"><h2 id="promotionTitle">Elegí la pieza para coronar</h2><label for="promotionChoice">Pieza</label><select id="promotionChoice"><option value="q">Dama</option><option value="r">Torre</option><option value="b">Alfil</option><option value="n">Caballo</option></select><button id="promotionOK">Confirmar coronación</button><button id="promotionCancel">Cancelar</button></dialog>');
+ $('promotionOK').onclick=()=>{const d=$('promotionDialog'),{from,to}=d.dataset;d.close();requestMove(from,to,$('promotionChoice').value)};$('promotionCancel').onclick=()=>$('promotionDialog').close();
+ append('groupPlaying','<button id="claimDraw">Reclamar tablas</button><p>Podés reclamar tablas con triple repetición o cincuenta movimientos sin captura ni movimiento de peón. Cinco repeticiones o setenta y cinco movimientos terminan automáticamente.</p>');$('claimDraw').onclick=claimDraw;append('groupPlaying','<button id="claimPlannedDraw">Reclamar tablas con la jugada guiada indicada</button>');$('claimPlannedDraw').onclick=claimPlannedDraw;
+ append('groupHistory','<button id="autoLoad">Recuperar autoguardado</button><button id="pgnExport">Exportar PGN</button><p>Guardar partida conserva una copia manual. El autoguardado se actualiza con cada jugada por separado. Una partida anterior a 9.0 exporta PGN desde su posición recuperada.</p>');
+ $('autoLoad').onclick=()=>restore(AUTO_KEY);$('pgnExport').onclick=downloadPGN;
+ const originalSave=$('save').onclick;$('save').onclick=()=>{if(localStorage.getItem(SAVEKEY)&&!confirm('Reemplazar la partida guardada manualmente por la actual?'))return;originalSave()};
+ append('groupMemory','<button id="tactics">Atacantes y defensores de la casilla explorada</button><button id="importantPieces">Recordar reyes y damas</button>');
+ $('tactics').onclick=()=>{const p=board[activeSquare],c=p?.[0]||turn;const list=c=>exactAttackers(activeSquare,c).map(([s])=>desc(s)).join('; ')||'ninguno';spatialMessage(desc(activeSquare)+'. Atacantes: '+list(opp(c))+'. Defensores: '+list(c)+'. Son ataques geométricos, incluso piezas clavadas. No determina si una captura es legal o favorable.')};
+ $('importantPieces').onclick=()=>spatialMessage(Object.keys(board).filter(s=>['k','q'].includes(board[s][1])).sort().map(s=>desc(s)).join('; '));
+ append('groupExercises','<h3>Orientación espacial</h3><p>Explorá desde A1 hasta H8: siete pasos arriba y siete a la derecha. Este ejercicio no modifica la partida.</p><p id="orientationStatus" role="status">Estás en A1. Objetivo H8.</p><div id="orientationControls" class="controls"></div><button id="orientationReset">Reiniciar orientación</button>');
+ let pos='A1';for(const [label,dx,dy]of [['Arriba',0,1],['Abajo',0,-1],['Izquierda',-1,0],['Derecha',1,0]]){const b=document.createElement('button');b.textContent=label+' en ejercicio';b.onclick=()=>{const [x,y]=xy(pos);if(valid(x+dx,y+dy))pos=sq(x+dx,y+dy);$('orientationStatus').textContent='Estás en '+pos+(pos==='H8'?'. Correcto: llegaste al objetivo.':'. Objetivo H8.')};$('orientationControls').append(b)}$('orientationReset').onclick=()=>{pos='A1';$('orientationStatus').textContent='Estás en A1. Objetivo H8.'};
+ append('groupSound','<label><input type="checkbox" id="spatialEnabled"> Sonido espacial habilitado (se recuerda; requiere interacción al abrir)</label>');
+ const prefIds=['spatialEnabled','soundVolume','soundMode','soundDelay','difficulty','assist','responseMode','bot','engineMode'];let prefs={};try{prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{}')}catch{}for(const id of prefIds){const el=$(id);if(prefs[id]!==undefined){if(el.type==='checkbox')el.checked=!!prefs[id];else if(el.tagName!=='SELECT'||[...el.options].some(o=>o.value===prefs[id]))el.value=prefs[id]}el.addEventListener('change',()=>{const data={};for(const k of prefIds)data[k]=$(k).type==='checkbox'?$(k).checked:$(k).value;try{localStorage.setItem(PREF_KEY,JSON.stringify(data))}catch{say('No se pudieron guardar las preferencias.')}})}$('soundVolume').oninput();
+ 
+ async function applyAudio(){if(!$('spatialEnabled').checked){if(audio){await audio.close();audio=null}$('audio').textContent='Activar sonido estéreo';return}try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();await audio.resume();$('audio').textContent='Desactivar sonido estéreo'}catch{say('No se pudo activar el sonido.')}}
+ $('spatialEnabled').addEventListener('change',applyAudio);
+ $('audio').onclick=()=>{$('spatialEnabled').checked=!$('spatialEnabled').checked;$('spatialEnabled').dispatchEvent(new Event('change'));};
+ const resumeSaved=()=>{if($('spatialEnabled').checked&&!audio)applyAudio()};document.addEventListener('pointerdown',resumeSaved,{once:true});document.addEventListener('keydown',resumeSaved,{once:true});
+ $('groupPlaying').open=true;$('boardDetails').open=true;
+}
+
+setupAccessibleMenus();
+setupV9();
+
+start();
+</script></body></html>
