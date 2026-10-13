@@ -14,4 +14,5 @@ Node 22 y pnpm 11.25.0. Ejecutar `pnpm install --frozen-lockfile --ignore-script
 
 El workflow de main prueba antes de publicar con GitHub Pages. Stockfish se copia del paquete fijado 19.0.0; se distribuye con licencia GPL v3 y referencia al código fuente exacto. El código del motor no fue modificado: https://github.com/nmrugg/stockfish.js/tree/v19.0.0 .
 
-El almacenamiento de partidas y progreso es local al navegador. No se envía a servicios externos. La etiqueta backup-v8.4-20261013 conserva la versión anterior.
+El almacenamiento de partidas y progreso es local al navegador. No se envía a servicios externos. La rama de respaldo backup-v8.4-20261013 conserva la versión anterior.
+

@@ -1,6 +1,6 @@
 # Informe de la candidata 9.0
 
-Fecha: 13 de octubre de 2026. Base inspeccionada: `209f70ff03e0ba746488f8bef33edf2782a80cda` (8.4). Respaldo: etiqueta `backup-v8.4-20261013`. Se conserva el repositorio `matiasasforza-pixel/ajedrez-inclusivo.` y la rama `main`.
+Fecha: 13 de octubre de 2026. Base inspeccionada: `209f70ff03e0ba746488f8bef33edf2782a80cda` (8.4). Respaldo: rama remota y etiqueta local `backup-v8.4-20261013`. Se conserva el repositorio `matiasasforza-pixel/ajedrez-inclusivo.` y la rama `main`.
 
 ## Inspección y cambios
 
@@ -32,5 +32,14 @@ Suite de navegador en Windows/Edge: 11 casos aprobados, incluida la revisión fi
 
 La guía enumera el protocolo de Ferda, TalkBack, NVDA e instalación Android. No se han ejecutado esas validaciones físicas. Tampoco se certifica compatibilidad con todos los navegadores, cuotas de almacenamiento o todas las posiciones muertas complejas. Los ataques tácticos son geométricos, no una evaluación de rentabilidad material.
 
-Para recuperar 8.4 sin reescribir historial: crear un commit de reversión de los commits 9.0 y publicar pasando los controles correspondientes. La etiqueta conserva el estado exacto de partida. No se han borrado datos locales de usuarios.
+Para recuperar 8.4 sin reescribir historial: crear un commit de reversión de los commits 9.0 y publicar pasando los controles correspondientes. La rama de respaldo conserva el estado exacto de partida. No se han borrado datos locales de usuarios.
+
+
+## Publicación verificada
+
+Código publicado en main: 5747afae047c5c916cbe2512633551bcf2e5e48b, con etapa previa 816e7aa4fe4ea268433904314f32fb4e08ab3571. La copia local original se conserva también en local-candidata-9.0.
+
+GitHub Actions, ejecución 38344778964: pruebas y despliegue completados con éxito. URL de evidencia: https://github.com/matiasasforza-pixel/ajedrez-inclusivo./actions/runs/38344778964 .
+
+La misma suite de 11 pruebas pasó después contra la URL pública HTTPS en Windows/Edge, incluida una recarga sin red y respuesta de Stockfish. La publicación en Linux/Chromium también pasó las 11 pruebas. Estas comprobaciones no sustituyen las pruebas físicas de accesibilidad e instalación.
 
