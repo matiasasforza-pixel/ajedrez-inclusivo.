@@ -1,9 +1,9 @@
 /* Ajedrez Inclusivo: disponibilidad básica sin conexión, sin modificar datos de partidas. */
-const CACHE = 'ajedrez-inclusivo-pwa-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icono-ajedrez.svg'];
+const CACHE = 'ajedrez-inclusivo-pwa-v9-rc1';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icono-ajedrez.svg', './stockfish-19-lite-single.js', './stockfish-19-lite-single.wasm'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
-  self.skipWaiting();
+  // Keep the previous version in open games until all old tabs are closed.
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(names => Promise.all(names.filter(name => name.startsWith('ajedrez-inclusivo-pwa-') && name !== CACHE).map(name => caches.delete(name)))));
@@ -12,15 +12,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(response => {
-      if (response.ok) {const copy=response.clone(); caches.open(CACHE).then(cache=>cache.put('./index.html',copy));}
-      return response;
-    }).catch(() => caches.match('./index.html')));
-    return;
-  }
-  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
-    if (response.ok) {const copy=response.clone(); caches.open(CACHE).then(cache=>cache.put(request,copy));}
-    return response;
-  })));
+  if (!request.url.startsWith(self.registration.scope)) return;
+  event.respondWith(caches.open(CACHE).then(async cache => {
+    const cached=await cache.match(request,{ignoreSearch:true});
+    if(cached)return cached;
+    if(request.mode==='navigate')return (await cache.match('./index.html'))||fetch(request);
+    return fetch(request);
+  }));
 });

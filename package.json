@@ -1,0 +1,11 @@
+{
+  "name": "ajedrez-inclusivo",
+  "version": "9.0.0-rc.1",
+  "private": true,
+  "scripts": {"build":"node scripts/build.cjs", "test":"playwright test"},
+	"devDependencies": {
+		"chess.js": "1.4.0",
+		"@playwright/test": "1.56.1",
+		"stockfish": "19.0.0"
+	}
+}
