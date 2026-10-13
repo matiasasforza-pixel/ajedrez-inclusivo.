@@ -1,40 +1,44 @@
-name: Publicar Ajedrez Inclusivo con Stockfish
+name: Probar y publicar Ajedrez Inclusivo 9.0
 on:
   workflow_dispatch:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm test
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Preparar sitio y motor Stockfish 19 Lite
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p public
-          cp index.html public/index.html
-          cp manifest.webmanifest sw.js icono-ajedrez.svg public/
-          # Instalar desde el registro oficial npm: la CDN devolvía HTTP 403.
-          npm install --prefix "$RUNNER_TEMP/stockfish" --no-save --ignore-scripts --no-audit --no-fund stockfish@19.0.0
-          cp "$RUNNER_TEMP/stockfish/node_modules/stockfish/bin/stockfish-19-lite-single.js" public/
-          cp "$RUNNER_TEMP/stockfish/node_modules/stockfish/bin/stockfish-19-lite-single.wasm" public/
-          test "$(wc -c < public/stockfish-19-lite-single.js)" -gt 10000
-          test "$(wc -c < public/stockfish-19-lite-single.wasm)" -gt 100000
-          curl -fL --retry 3 "https://raw.githubusercontent.com/nmrugg/stockfish.js/master/Copying.txt" -o public/LICENCIA_STOCKFISH_GPL3.txt
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
       - id: deployment
         uses: actions/deploy-pages@v4

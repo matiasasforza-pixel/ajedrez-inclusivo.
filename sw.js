@@ -1,6 +1,6 @@
 /* Ajedrez Inclusivo: disponibilidad básica sin conexión, sin modificar datos de partidas. */
 const CACHE = 'ajedrez-inclusivo-pwa-v9-rc1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icono-ajedrez.svg', './stockfish-19-lite-single.js', './stockfish-19-lite-single.wasm'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icono-ajedrez.svg', './icon-192.png', './icon-512.png', './stockfish-19-lite-single.js', './stockfish-19-lite-single.wasm'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   // Keep the previous version in open games until all old tabs are closed.

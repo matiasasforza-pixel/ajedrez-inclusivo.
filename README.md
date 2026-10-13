@@ -1,43 +1,17 @@
-# Ajedrez Inclusivo
+# Ajedrez Inclusivo 9.0 — candidata estable
 
-Aplicación de ajedrez inclusiva y accesible para personas ciegas, compatible con lectores de pantalla.
+Aplicación accesible de aprendizaje y ajedrez contra un rival incorporado o Stockfish 19 Lite. Conserva Jugar/Aprender, doce lecciones y progreso anterior.
 
-## Propósito
+- [Abrir aplicación](https://matiasasforza-pixel.github.io/ajedrez-inclusivo./)
+- [Instalación y uso accesible](GUIA-9.0.md)
+- [Cambios, pruebas y limitaciones](INFORME-9.0.md)
 
-Facilitar el aprendizaje y la práctica del ajedrez mediante una interfaz que pueda utilizarse sin visión, con teclado y lectores de pantalla.
+La compatibilidad final con Ferda, TalkBack y NVDA requiere validación real. Esta candidata no se declara versión 1.0 estable.
 
-## Estado del proyecto
+## Desarrollo y publicación
 
-El repositorio es público y utiliza la rama principal `main`. Actualmente contiene documentación preparatoria. El HTML real de la aplicación y sus dependencias todavía deben incorporarse. No se incluye ni se afirma el funcionamiento de ninguna versión de la aplicación.
+Node 22 y pnpm 11.25.0. Ejecutar `pnpm install --frozen-lockfile --ignore-scripts`, `pnpm exec playwright install chromium`, `pnpm build` y `pnpm test`. En Windows las pruebas utilizan Edge instalado; en Linux, Chromium de Playwright. Para servir localmente: `node scripts/serve.cjs`.
 
-Stockfish no está incorporado ni se ha comprobado su funcionamiento. La activación y el funcionamiento de GitHub Pages están pendientes de verificación.
+El workflow de main prueba antes de publicar con GitHub Pages. Stockfish se copia del paquete fijado 19.0.0; se distribuye con licencia GPL v3 y referencia al código fuente exacto. El código del motor no fue modificado: https://github.com/nmrugg/stockfish.js/tree/v19.0.0 .
 
-## Requisitos de accesibilidad
-
-- Compatibilidad con Ferda y TalkBack en Android y NVDA en Windows.
-- Controles con nombres accesibles y navegación mediante teclado.
-- Identificación de casillas, piezas, turnos y movimientos mediante texto accesible.
-- Información que no dependa exclusivamente de imágenes, colores o sonidos.
-- Anuncios comprensibles, evitando superposición con la voz del lector de pantalla.
-
-Estos son requisitos del proyecto. La compatibilidad efectiva debe probarse con la aplicación real y cada lector de pantalla antes de anunciarla como confirmada.
-
-## Publicación prevista
-
-Se prevé utilizar GitHub Pages desde la raíz de `main`, en el dominio gratuito `github.io`, con HTTPS. GitHub Pages admite repositorios públicos con GitHub Free: no es necesario contratar alojamiento ni comprar un dominio.
-
-Cuando se disponga del HTML real, se revisará y se incorporará como `index.html`, junto con sus dependencias. Antes de afirmar que el sitio funciona, se comprobarán el despliegue y la dirección pública HTTPS.
-
-Documentación oficial:
-
-- https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
-- https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
-- https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https
-
-## Incorporación posterior de Stockfish
-
-La integración del motor queda pendiente. Se deberá elegir una distribución adecuada para el navegador, revisar sus requisitos y licencia, incorporar los archivos reales y comprobar que el motor se inicia y responde a las solicitudes de la aplicación.
-
-## Privacidad
-
-El repositorio y el sitio serán públicos. No deben incorporarse contraseñas, credenciales, datos privados ni información personal.
+El almacenamiento de partidas y progreso es local al navegador. No se envía a servicios externos. La etiqueta backup-v8.4-20261013 conserva la versión anterior.

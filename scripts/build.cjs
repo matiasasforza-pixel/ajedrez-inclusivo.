@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path');
 fs.mkdirSync('public',{recursive:true});
-for(const f of ['index.html','sw.js','manifest.webmanifest','icono-ajedrez.svg'])fs.copyFileSync(f,path.join('public',f));
+for(const f of ['index.html','sw.js','manifest.webmanifest','icono-ajedrez.svg','icon-192.png','icon-512.png'])fs.copyFileSync(f,path.join('public',f));
 const root=path.dirname(require.resolve('stockfish/package.json'));
 for(const f of ['stockfish-19-lite-single.js','stockfish-19-lite-single.wasm'])fs.copyFileSync(path.join(root,'bin',f),path.join('public',f));
 fs.copyFileSync(path.join(root,'Copying.txt'),'public/LICENCIA_STOCKFISH_GPL3.txt');
